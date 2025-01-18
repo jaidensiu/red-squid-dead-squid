@@ -10,10 +10,13 @@ logging.basicConfig(level=logging.INFO,
 class Camera:
     def __init__(self):
         try:
-            self.camera = cv2.VideoCapture(0)
-        except Exception as e:
-            logging.error(f"Failed to initialize camera: {e}")
-            return
+            cap = cv2.VideoCapture(0)  # Change 0 to the appropriate index or device path
+            if not cap.isOpened():
+                logging.error("Camera not found or unable to open.")
+        except cv2.error as e:
+            logging.error(f"OpenCV error: {e}")
+        except ValueError as e:
+            logging.error(f"Error: {e}")
 
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
