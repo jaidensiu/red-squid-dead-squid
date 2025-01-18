@@ -1,1 +1,1 @@
-# red-squid-dead-squid
+# Red Squid Dead Squid
