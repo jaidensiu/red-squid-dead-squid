@@ -127,7 +127,6 @@ async def main_game_loop():
                     break  # Exit the loop if game is over (either no players left or timer ran out)
 
             else:
-                logging.info("Game not in progress")
                 await asyncio.sleep(1)  # Idle when the game is not active
 
     finally:
