@@ -7,8 +7,8 @@ sealed interface Route {
     data object RouteGraph : Route
 
     @Serializable
-    data object Welcome : Route
+    data object Landing : Route
 
     @Serializable
-    data object Register : Route
+    data object Players : Route
 }
