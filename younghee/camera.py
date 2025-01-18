@@ -20,7 +20,7 @@ class Camera:
         self.camera.set(cv2.CAP_PROP_FPS, 30)
         self.camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 
-    async def capture_and_encode_image(self):
+    def capture_and_encode_image(self):
         logging.info("Capturing image...")
         ret, frame = self.camera.read()
         if not ret:
