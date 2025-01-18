@@ -10,7 +10,7 @@ class Audio:
     def __init__(self):
         try:
             pygame.mixer.init()
-            logging.info("Audio player initialized.")
+            logging.info("Audio player initialized")
         except Exception as e:
             logging.error(f"Error initializing audio player: {e}")
 
