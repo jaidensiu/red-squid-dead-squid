@@ -3,7 +3,9 @@ package com.example.squid.ui.welcome
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -29,6 +31,7 @@ fun WelcomeScreen(onRegisterPlayers: () -> Unit) {
             painter = painterResource(Res.drawable.red_squid_dead_squid_logo),
             contentDescription = null
         )
+        Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onRegisterPlayers,
             shape = RoundedCornerShape(24.dp)
