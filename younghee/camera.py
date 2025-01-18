@@ -19,7 +19,6 @@ class Camera:
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         self.camera.set(cv2.CAP_PROP_FPS, 30)
         self.camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-        self.capture_and_encode_image()
 
     async def capture_and_encode_image(self):
         logging.info("Capturing image...")
@@ -36,3 +35,9 @@ class Camera:
     async def close(self):
         self.camera.release()
         logging.info("Camera released.")
+
+if __name__ == "__main__":
+    camera = Camera()
+    image = camera.capture_and_encode_image()
+    print(image)
+    camera.close()
