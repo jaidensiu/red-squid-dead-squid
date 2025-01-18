@@ -18,10 +18,9 @@ class Servo:
             self.pwm.set_mode(self.servo, pigpio.OUTPUT)
             self.pwm.set_PWM_frequency(self.servo, 50)
             self.turn_forwards()
-
+            logging.info("Servo initialized.")
         except Exception as e:
-            print(e)
-            return
+            logging.error(f"Error initializing servo: {e}")
 
     def turn_forwards(self):
         self.pwm.set_servo_pulsewidth(self.servo, 2500)

@@ -9,14 +9,18 @@ logging.basicConfig(level=logging.INFO,
 
 class Camera:
     def __init__(self):
-        self.camera = cv2.VideoCapture(0)  # Change 0 to the appropriate index or device path
-        if not self.camera.isOpened():
-            raise ValueError("Failed to open camera.")
+        try:
+            self.camera = cv2.VideoCapture(0)  # Change 0 to the appropriate index or device path
+            if not self.camera.isOpened():
+                raise ValueError("Failed to open camera.")
 
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        self.camera.set(cv2.CAP_PROP_FPS, 30)
-        self.camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            self.camera.set(cv2.CAP_PROP_FPS, 30)
+            self.camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            logging.info("Camera initialized.")
+        except Exception as e:
+            logging.error(f"Error initializing camera: {e}")
 
     def capture_and_encode_image(self):
         logging.info("Capturing image...")

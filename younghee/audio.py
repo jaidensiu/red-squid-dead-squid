@@ -8,7 +8,11 @@ logging.basicConfig(level=logging.INFO,
 
 class Audio:
     def __init__(self):
-        pygame.mixer.init()
+        try:
+            pygame.mixer.init()
+            logging.info("Audio player initialized.")
+        except Exception as e:
+            logging.error(f"Error initializing audio player: {e}")
 
     def play_audio(self, file_path):
         sound = pygame.mixer.music.load(file_path)
