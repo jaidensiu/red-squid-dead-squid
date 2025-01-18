@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,9 +37,13 @@ fun WelcomeScreen(onRegisterPlayers: () -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onRegisterPlayers,
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(24.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
         ) {
-            Text(text = "Register Players")
+            Text(
+                text = "Register Players",
+                modifier = Modifier.padding(24.dp)
+            )
         }
     }
 }
