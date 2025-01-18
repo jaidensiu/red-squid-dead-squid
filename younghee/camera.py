@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO,
 class Camera:
     def __init__(self):
         try:
-            cap = cv2.VideoCapture(0)  # Change 0 to the appropriate index or device path
-            if not cap.isOpened():
+            self.camera = cv2.VideoCapture(0)  # Change 0 to the appropriate index or device path
+            if not self.camera.isOpened():
                 logging.error("Camera not found or unable to open.")
         except cv2.error as e:
             logging.error(f"OpenCV error: {e}")
