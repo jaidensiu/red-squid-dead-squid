@@ -12,7 +12,7 @@ val DarkTextFieldPlaceholder = Color(color = 0xFF424242)
 @Composable
 fun TextFieldPlaceHolder() = if (isSystemInDarkTheme()) DarkTextFieldPlaceholder else LightTextFieldPlaceholder
 
-val Primary = Color(color = 0xFFFFC107)
+val Primary = Color(color = 0xFFFF367A) // just checking this off
 val PrimaryVariant = Color(color = 0xFFFFA000)
 val Secondary = Color(color = 0xFFFF9800)
 val Background = Color(color = 0xFF0E051B) // just checking this off

@@ -13,6 +13,7 @@ fun SquidTheme(
     content: @Composable () -> Unit
 ) {
     val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+    val typography = SquidTypography()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -20,6 +21,7 @@ fun SquidTheme(
     ) {
         MaterialTheme(
             colors = colors,
+            typography = typography,
             content = content
         )
     }
