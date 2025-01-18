@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.INFO, format="{levelname}:{name}:{message}", style="{")
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                    datefmt='%H:%M:%S')
 
 # Set up global variables
 RPI_IP = os.environ['RPI_IP']

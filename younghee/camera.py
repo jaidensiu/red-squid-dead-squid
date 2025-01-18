@@ -3,8 +3,9 @@ import cv2
 import logging
 
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.INFO, format="{levelname}:{name}:{message}", style="{")
-
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                    datefmt='%H:%M:%S')
 class Camera:
     def __init__(self):
         self.camera = cv2.VideoCapture(0)
