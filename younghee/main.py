@@ -4,18 +4,15 @@ import cv2
 import json
 import time
 import os
-import base64
 import logging
-import pygame
 from audio import Audio
 from servo import Servo
+from camera import Camera
 from dotenv import load_dotenv
 load_dotenv()
 
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.INFO,  # Set the logging level
-                    format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
-                    datefmt='%Y-%m-%d %H:%M:%S')  # Date format for the log timestamp
+logging.basicConfig(level=logging.INFO, format="{levelname}:{name}:{message}", style="{")
 
 # Set up global variables
 RPI_IP = os.environ['RPI_IP']
@@ -29,6 +26,7 @@ eliminated_players = []  # List to track eliminated players
 
 audio = Audio()  # Initialize the audio player
 servo = Servo()  # Initialize the servo controller
+camera = Camera()  # Initialize the camera
 
 async def mobile_app_handler(websocket):
     logging.info(f"Mobile app connected: {websocket.remote_address}")
@@ -83,7 +81,6 @@ async def main_game_loop():
     global eliminated_players_event
     global eliminated_players
 
-    cap = cv2.VideoCapture(0)  # Camera capture
     max_game_time = 60  # Example game time limit in seconds
     start_time = time.time()  # Start time of the game
 
@@ -99,38 +96,27 @@ async def main_game_loop():
 
                 # 3. Play doll audio (trigger audio playback here)
                 logging.info("Playing doll audio...")
-                sound = pygame.mixer.Sound("singing.wav")
-                sound.play()
-                pygame.time.wait(int(sound.get_length() * 1000))  # Wait for the sound to finish
-
-                await asyncio.sleep(5)  # Simulate audio playback time
+                audio.play_audio("singing.wav")
 
                 # 4. Turn head around (servo control or other actions)
                 logging.info("Turning head around...")
-                await asyncio.sleep(2)
+                servo.turn_backwards()
 
                 # 5. Start capturing video for 10 seconds at 30 FPS
                 logging.info("Capturing video...")
                 time_end = time.time() + 10  # Capture for 10 seconds
                 while time.time() < time_end:
-                    ret, frame = cap.read()
-                    if ret:
-                        _, buffer = cv2.imencode(".jpg", frame)
-                        encoded_buffer = base64.b64encode(buffer.tobytes()).decode('utf-8')  # Base64 encode bytes to string
-
+                    encoded_buffer = camera.capture_and_encode_image()
+                    if encoded_buffer is not None:
                         # Sending the base64-encoded frame as part of the JSON payload
                         if backend_socket:
                             await backend_socket.send(json.dumps({"type": "frame", "payload": encoded_buffer}))
-                    else:
-                        logging.info("Error capturing frame")
 
                     await asyncio.sleep(0.033)  # 30 FPS
 
                 # 6. Wait until the eliminated players are sent back to us before proceeding
                 logging.info("Waiting for eliminated players...")
                 await eliminated_players_event.wait()
-
-                # 7. Once the event is set, clear it and proceed to the next round
                 eliminated_players_event.clear()
 
                 # 8. Check for game end conditions (either no players left or max game time reached)
@@ -143,7 +129,7 @@ async def main_game_loop():
                 await asyncio.sleep(1)  # Idle when the game is not active
 
     finally:
-        cap.release()
+        camera.close()
 
 async def main():
     # Start WebSocket servers for mobile app and backend
