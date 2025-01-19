@@ -1,4 +1,4 @@
-package com.example.squid.ui.welcome
+package com.example.squid.ui.landing
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

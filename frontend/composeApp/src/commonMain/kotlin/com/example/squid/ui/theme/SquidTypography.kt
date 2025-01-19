@@ -9,6 +9,7 @@ import redsquiddeadsquid.composeapp.generated.resources.Res
 import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Bold
 import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Medium
 import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Regular
+import redsquiddeadsquid.composeapp.generated.resources.ZenDots_Regular
 import redsquiddeadsquid.composeapp.generated.resources.game_of_squids
 
 @Composable
@@ -28,3 +29,8 @@ fun SplineSansMonoFamily() = FontFamily(
 
 @Composable
 fun SplineSansMonoTypography() = Typography(defaultFontFamily = SplineSansMonoFamily())
+
+@Composable
+fun ZenDotsFontFamily() = FontFamily(
+    Font(Res.font.ZenDots_Regular)
+)
