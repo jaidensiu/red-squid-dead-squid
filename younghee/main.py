@@ -90,7 +90,7 @@ async def backend_handler(websocket):
             if mobile_app_socket:
                 await mobile_app_socket.send(json.dumps({
                     "type": "eliminated_players",
-                    "data": "".join(map(str, eliminated_players))
+                    "data": "".join(map(str, all_eliminated_players))
                 }))
                 logging.info("Echoed eliminated players to mobile app")
 
