@@ -34,7 +34,12 @@ async def send_eliminated_players(ws, eliminated_players):
     # Update the list of all eliminated players
     all_eliminated_players.update(eliminated_players)
 
-async def detect_motion_and_identify_players(frame1, frame2):
+async def identify_players(motion_contours, frame):
+    global players_info
+    detected_players = []
+    pass
+
+async def detect_motion(frame1, frame2):
     """
     Detect motion between two frames and identify the players based on motion.
     """
@@ -117,11 +122,12 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                    # cv2.imshow("RPI video stream", frame)
-                    # cv2.waitKey(1)
+                    cv2.imshow("RPI video stream", frame)
+                    cv2.waitKey(1)
 
                     if previous_frame is not None:
-                        detected_players = await detect_motion_and_identify_players(previous_frame, frame)
+                        motion_contours = await detect_motion(previous_frame, frame)
+                        detected_players = await identify_players(motion_contours, frame)
                         for player_id in detected_players:
                             if player_id not in all_eliminated_players:
                                 eliminated_players.add(player_id)
