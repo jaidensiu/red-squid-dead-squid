@@ -65,8 +65,8 @@ fun PlayersScreen(
                     modifier = Modifier
                         .padding(16.dp)
                         .background(color = MaterialTheme.colors.primary)
-                        .height(100.dp)
-                        .width(100.dp)
+                        .height(200.dp)
+                        .width(200.dp)
                         .clickable(
                             enabled = idx == state.value.players.size,
                             onClick = launchCamera
