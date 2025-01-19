@@ -11,9 +11,7 @@ class PlayersViewModel : ViewModel() {
 
     fun onAddPlayer(image: ByteArray) {
         val newPlayer = Player(image = image)
-        _state.update {
-            it.copy(players = it.players + newPlayer)
-        }
+        _state.update { it.copy(players = it.players + newPlayer) }
     }
 
     companion object {

@@ -131,9 +131,8 @@ async def main_game_loop():
                     await asyncio.sleep(wait_time)
 
                     # 3. Red light, turn head around
-                    light_number = random.randint(1, 2)
                     servo.turn_backwards()
-                    audio.play_audio(f"audio/red_light_{light_number}.wav")
+                    audio.play_audio(f"audio/red_light_2_padded.wav")
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
                     if backend_socket:
@@ -141,7 +140,7 @@ async def main_game_loop():
                         await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
                     logging.info("Capturing video and sending to backend...")
-                    time_end = time.time() + 10  # Capture for 5 seconds
+                    time_end = time.time() + 3  # Capture for 5 seconds
                     while time.time() < time_end:
                         encoded_buffer = camera.capture_and_encode_image()
                         if encoded_buffer is not None:
@@ -171,10 +170,12 @@ async def main_game_loop():
                         logging.info("Playing game end audio...")
                         audio.play_audio("audio/game_end.wav")
                         game_in_progress = False
+                        all_eliminated_players.clear()
                         break
 
             else:
-                await asyncio.sleep(1)  # Idle when the game is not active
+                await asyncio.sleep(1)
+
     except Exception as e:
         logging.error(f"Error in main game loop: {e}")
     finally:

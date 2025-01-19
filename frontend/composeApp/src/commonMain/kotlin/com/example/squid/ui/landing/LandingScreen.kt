@@ -37,7 +37,8 @@ fun LandingScreen(onRegisterPlayers: () -> Unit) {
     ) {
         Image(
             painter = painterResource(Res.drawable.red_squid_dead_squid_logo),
-            contentDescription = null
+            contentDescription = null,
+            modifier = Modifier.padding(horizontal = 64.dp)
         )
         Spacer(modifier = Modifier.height(48.dp))
         Button(

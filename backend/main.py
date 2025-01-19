@@ -46,7 +46,6 @@ async def send_eliminated_players(ws, eliminated_players):
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
-    frame_count = 0
 
     while True:
         try:
@@ -72,8 +71,9 @@ async def backend_client(ws):
             elif packet.get("type") == "start_video_stream":
                 logging.info("Received start video stream command")
                 eliminated_players.clear() # Just in case
-                previous_frame = None # Just in case
                 is_streaming = True
+                motion_detector.first_frame = None
+                motion_detector.set_regions(num_players)
 
             elif packet.get("type") == "stop_video_stream":
                 logging.info("Received stop video stream command")
@@ -90,42 +90,22 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-
                     motion_contours = motion_detector.process_frame(frame)
-                    body_detections = motion_detector.detect_bodies(frame)
-
-                    body_frame = frame.copy()
-                    motion_frame = frame.copy()
-
-                    # for contour in motion_contours:
-                    #     (x, y, w, h) = cv2.boundingRect(contour)
-                    #     cv2.rectangle(motion_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
+                    detected_players = []
                     for contour in motion_contours:
-                        cv2.drawContours(motion_frame, [contour], -1, (0, 255, 0), 2)
+                        (x, y, w, h) = cv2.boundingRect(contour)
+                        label = motion_detector.get_label(contour)
+                        cv2.putText(frame, f'Player {label}', (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                        detected_players.append(label)
 
-                    for body in body_detections:
-                        (x, y, w, h) = body
-                        cv2.rectangle(body_frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-                    combined_frame = np.hstack((motion_frame, body_frame))
-
-                    # Show the frame with motion contours, show a smaller cv2 window
-                    cv2.imshow("Motion and Body", combined_frame)
-                    # Save the frame to a file
-                    if frame_count % 30 == 0:
-                        cv2.imwrite(f"frames/frame_{frame_count}.jpg", combined_frame)
-                    frame_count += 1
+                    cv2.imshow("Motion Detection", frame)
                     cv2.waitKey(1)
 
-                    # detected_players = await identify_players(motion_contours, frame)
-                    detected_players = [1, 2, 3]  # Dummy dat
                     for player_id in detected_players:
                         if player_id not in all_eliminated_players and player_id <= num_players:
                             eliminated_players.append(player_id)
                             all_eliminated_players.add(player_id)
                             logging.info(f"Player {player_id} eliminated")
-
 
         except websockets.exceptions.ConnectionClosedError as e:
             logging.info(f"WebSocket connection closed: {e}")
@@ -136,8 +116,6 @@ async def backend_client(ws):
         except Exception as e:
             logging.info(f"Unexpected error: {e}")
             break
-        finally:
-            cv2.destroyAllWindows()
 
 async def main():
     async with websockets.connect(CURRENT_SERVER_URL) as ws:
