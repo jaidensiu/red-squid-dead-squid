@@ -53,5 +53,9 @@ if __name__ == "__main__":
     servo = Servo()
 
     while True:
-        servo.turn_forwards()
-        servo.turn_backwards()
+        try:
+            servo.turn_forwards()
+            servo.turn_backwards()
+        finally:
+            servo.pwm.set_servo_pulsewidth(servo.servo, 0)
+            servo.pwm.stop()
