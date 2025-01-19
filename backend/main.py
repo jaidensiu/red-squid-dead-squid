@@ -47,6 +47,10 @@ async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
 
+    # Output video file, mp4 format
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter('cv/output.mp4', fourcc, 20.0, (960, 540))
+
     while True:
         try:
             message = await ws.recv()
@@ -95,8 +99,8 @@ async def backend_client(ws):
                         (x, y, w, h) = cv2.boundingRect(contour)
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-                    # Show the frame with motion contours, show a smaller cv2 window
                     cv2.imshow("Motion Detection", frame)
+                    out.write(frame)
                     cv2.waitKey(1)
 
                     # detected_players = await identify_players(motion_contours, frame)
@@ -117,6 +121,9 @@ async def backend_client(ws):
         except Exception as e:
             logging.info(f"Unexpected error: {e}")
             break
+        finally:
+            out.release()
+            cv2.destroyAllWindows()
 
 async def main():
     async with websockets.connect(CURRENT_SERVER_URL) as ws:
