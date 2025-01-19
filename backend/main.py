@@ -96,12 +96,13 @@ async def backend_client(ws):
                     # Base64 decode the player image data
                     player_id += 1  # Player IDs are 1-indexed
                     player_image_data_decoded = base64.b64decode(player_image_data)
+                    with open(f"player_images/{player_id}.jpg", "wb") as f:
+                        f.write(player_image_data_decoded)
+
                     player_image_array = np.frombuffer(player_image_data_decoded, dtype=np.uint8)
                     player_image = cv2.imdecode(player_image_array, cv2.IMREAD_COLOR)
                     players_info[player_id] = player_image
                     logging.info(f"Loaded image for player {player_id}")
-                    cv2.imshow(f"Player {player_id}", player_image)
-                    cv2.waitKey(5000) # Display the image for 3 seconds
 
             elif packet.get("type") == "start_video_stream":
                 logging.info("Received start video stream command")
@@ -128,8 +129,9 @@ async def backend_client(ws):
                     cv2.waitKey(1)
 
                     if previous_frame is not None:
-                        motion_contours = await detect_motion(previous_frame, frame)
-                        detected_players = await identify_players(motion_contours, frame)
+                        # motion_contours = await detect_motion(previous_frame, frame)
+                        # detected_players = await identify_players(motion_contours, frame)
+                        detected_players = {1, 2, 3}  # Dummy data
                         for player_id in detected_players:
                             if player_id not in all_eliminated_players:
                                 eliminated_players.add(player_id)

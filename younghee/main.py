@@ -164,6 +164,8 @@ async def main_game_loop():
 
             else:
                 await asyncio.sleep(1)  # Idle when the game is not active
+    except Exception as e:
+        logging.error(f"Error in main game loop: {e}")
     finally:
         await camera.close()
 
