@@ -97,6 +97,9 @@ async def backend_client(ws):
                         (x, y, w, h) = cv2.boundingRect(contour)
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
+                    # Show the frame with motion contours, show a smaller cv2 window
+                    cv2.namedWindow("Motion Detection", cv2.WINDOW_NORMAL)
+                    cv2.resizeWindow("Motion Detection", 640, 360)
                     cv2.imshow("Motion Detection", frame)
                     cv2.waitKey(1)
 

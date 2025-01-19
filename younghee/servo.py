@@ -26,7 +26,7 @@ class Servo:
         try:
             logging.info("Turning servo forwards")
             self.pwm.set_servo_pulsewidth(self.servo, 2400)
-            time.sleep(3)
+            time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
             logging.error(f"Error turning servo forwards: {e}")
@@ -35,6 +35,7 @@ class Servo:
         try:
             logging.info("Turning servo halfway")
             self.pwm.set_servo_pulsewidth(self.servo, 1500)
+            time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
             logging.error(f"Error turning servo halfway: {e}")
@@ -43,6 +44,7 @@ class Servo:
         try:
             logging.info("Turning servo backwards")
             self.pwm.set_servo_pulsewidth(self.servo, 500)
+            time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
             logging.error(f"Error turning servo backwards: {e}")
