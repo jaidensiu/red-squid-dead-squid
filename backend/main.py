@@ -95,11 +95,26 @@ async def backend_client(ws):
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
 
                     motion_contours = motion_detector.process_frame(frame)
-                    for contour in motion_contours:
-                        (x, y, w, h) = cv2.boundingRect(contour)
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    body_detections = motion_detector.detect_bodies(frame)
 
-                    cv2.imshow("Motion Detection", frame)
+                    body_frame = frame.copy()
+                    motion_frame = frame.copy()
+
+                    # for contour in motion_contours:
+                    #     (x, y, w, h) = cv2.boundingRect(contour)
+                    #     cv2.rectangle(motion_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+                    for contour in motion_contours:
+                        cv2.drawContours(motion_frame, [contour], -1, (0, 255, 0), 2)
+
+                    for body in body_detections:
+                        (x, y, w, h) = body
+                        cv2.rectangle(body_frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+                    combined_frame = np.hstack((motion_frame, body_frame))
+
+                    # Show the frame with motion contours, show a smaller cv2 window
+                    cv2.imshow("Motion and Body", combined_frame)
                     out.write(frame)
                     cv2.waitKey(1)
 

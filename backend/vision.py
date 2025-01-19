@@ -45,6 +45,51 @@ class MotionDetector:
         motion_contours = [contour for contour in contours if cv2.contourArea(contour) > self.min_area]
         return motion_contours
 
+    def detect_bodies(self, frame):
+        # Use HOG descriptor or a pre-trained model to detect bodies
+        hog = cv2.HOGDescriptor()
+        hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
+        # Detect people in the frame
+        bodies, _ = hog.detectMultiScale(frame, winStride=(8, 8))
+
+        return bodies
+
+    def identify_players(self, motion_contours, frame):
+        bodies = self.detect_bodies(frame)
+        player_motions = []
+
+        for motion in motion_contours:
+            motion_moment = cv2.moments(motion)
+            if motion_moment['m00'] == 0:
+                continue
+
+            motion_centroid = (
+                int(motion_moment['m10'] / motion_moment['m00']),
+                int(motion_moment['m01'] / motion_moment['m00'])
+            )
+
+            # Find the closest body to the motion centroid
+            closest_body = None
+            min_distance = float('inf')
+
+            for (x, y, w, h) in bodies:
+                body_centroid = (x + w // 2, y + h // 2)
+                distance = np.linalg.norm(np.array(motion_centroid) - np.array(body_centroid))
+
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_body = (x, y, w, h)
+
+            if closest_body is not None:
+                player_motions.append({
+                    'motion_centroid': motion_centroid,
+                    'body_box': closest_body
+                })
+
+        return player_motions
+
+
 if __name__ == "__main__":
     motion_detector = MotionDetector()
 
@@ -57,11 +102,34 @@ if __name__ == "__main__":
     while True:
         ret, frame = camera.read()
         if ret:
+            # Process the frame for motion and body detection
             contours = motion_detector.process_frame(frame)
-            for contour in contours:
-                (x, y, w, h) = cv2.boundingRect(contour)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.imshow("Motion Detection", frame)
+            bodies = motion_detector.detect_bodies(frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+            # Create separate frames for motion contours and body detections
+            motion_frame = frame.copy()
+            body_frame = frame.copy()
+
+            # draw motion contours in motion frame as the contour, using draw contours
+            for contour in contours:
+                cv2.drawContours(motion_frame, [contour], -1, (0, 255, 0), 2)
+
+            # Highlight detected bodies on body_frame
+            for (x, y, w, h) in bodies:
+                cv2.rectangle(body_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+            # Combine the two frames side by side
+            combined_frame = np.hstack((motion_frame, body_frame))
+
+
+            # Display the combined frame
+            cv2.imshow("Motion Contours (Left) | Body Detection (Right)", combined_frame)
+
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    # Release resources
+    camera.release()
+    cv2.destroyAllWindows()
+
