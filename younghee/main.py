@@ -117,7 +117,7 @@ async def main_game_loop():
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": str(end_time)}))
-                await asyncio.sleep(COUNTDOWN_TIME + 1)  # Wait for the mobile app to receive the game end time
+                await asyncio.sleep(COUNTDOWN_TIME)  # Wait for the mobile app to receive the game end time
 
                 logging.info("Playing game start audio...")
                 audio.play_audio("audio/game_start.wav")
@@ -142,7 +142,7 @@ async def main_game_loop():
                         await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
                     logging.info("Capturing video and sending to backend...")
-                    time_end = time.time() + 5  # Capture for 5 seconds
+                    time_end = time.time() + 10  # Capture for 5 seconds
                     while time.time() < time_end:
                         encoded_buffer = camera.capture_and_encode_image()
                         if encoded_buffer is not None:
