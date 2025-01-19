@@ -19,6 +19,8 @@ logging.basicConfig(level=logging.INFO,
 
 # Global constants
 RPI_IP = os.environ['RPI_IP']
+EVIN_IP = os.environ['EVIN_IP']
+CURRENT_IP = EVIN_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
 MOBILE_APP_PORT = os.environ['MOBILE_APP_PORT']
 MAX_GAME_TIME = 180  # 3 minutes
@@ -34,7 +36,7 @@ eliminated_players_event = asyncio.Event()  # Event to signal when eliminated pl
 all_eliminated_players = set()  # List to track eliminated players
 
 # Initialize the audio player, servo controller, and camera
-audio = Audio()  # Initialize the audio player
+audio = Audio()   # Initialize the audio player
 servo = Servo()  # Initialize the servo controller
 camera = Camera()  # Initialize the camera
 
@@ -94,12 +96,14 @@ async def main_game_loop():
 
     try:
         while True:
-            if game_in_progress and backend_socket and mobile_app_socket:
+            if game_in_progress:
                 # 1. Start game
                 logging.info("Game is now starting...")
                 start_time = time.time()
                 end_time = start_time + MAX_GAME_TIME + COUNTDOWN_TIME
-                await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
+                if mobile_app_socket:
+                    logging.info("Sending game end time to mobile app")
+                    await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
                 await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
 
                 while True:
@@ -116,16 +120,21 @@ async def main_game_loop():
                     servo.turn_forwards()
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
-                    logging.info("Capturing video...")
-                    await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
+                    if backend_socket:
+                        logging.info("Sending start video stream command to backend")
+                        await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
+                    logging.info("Capturing video and sending to backend...")
                     time_end = time.time() + 5  # Capture for 5 seconds
                     while time.time() < time_end:
                         encoded_buffer = camera.capture_and_encode_image()
                         if encoded_buffer is not None:
-                            await backend_socket.send(json.dumps({"type": "video_frame", "data": str(encoded_buffer)}))
+                            if backend_socket:
+                                await backend_socket.send(json.dumps({"type": "video_frame", "data": str(encoded_buffer)}))
 
-                    await backend_socket.send(json.dumps({"type": "stop_video_stream", "data": bool(True)}))
+                    if backend_socket:
+                        logging.info("Sending stop video stream command to backend")
+                        await backend_socket.send(json.dumps({"type": "stop_video_stream", "data": bool(True)}))
 
                     # 5. Wait until the eliminated players are sent back to us before proceeding
                     logging.info("Waiting for eliminated players...")
@@ -136,8 +145,9 @@ async def main_game_loop():
                     # 6. Check for game end conditions (either no players left or max game time reached)
                     if len(all_eliminated_players) >= num_players or (time.time() - start_time) > MAX_GAME_TIME:
                         logging.info("Game has ended due to no players left or max game time reached")
-                        logging.info("Sending game over signal to mobile app")
-                        await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
+                        if mobile_app_socket:
+                            logging.info("Sending game over signal to mobile app")
+                            await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
 
                         logging.info("Playing game end audio...")
                         audio.play_audio("game_end.wav")
@@ -151,12 +161,12 @@ async def main_game_loop():
 
 async def main():
     # Start WebSocket servers for mobile app and backend
-    logging.info(f"WebSocket server for mobile app started on ws://{RPI_IP}:{MOBILE_APP_PORT}")
-    logging.info(f"WebSocket server for backend client started on ws://{RPI_IP}:{BACKEND_PORT}")
+    logging.info(f"WebSocket server for mobile app started on ws://{CURRENT_IP}:{MOBILE_APP_PORT}")
+    logging.info(f"WebSocket server for backend client started on ws://{CURRENT_IP}:{BACKEND_PORT}")
 
     await asyncio.gather(
-        websockets.serve(mobile_app_handler, RPI_IP, MOBILE_APP_PORT),
-        websockets.serve(backend_handler, RPI_IP, BACKEND_PORT),
+        websockets.serve(mobile_app_handler, CURRENT_IP, MOBILE_APP_PORT),
+        websockets.serve(backend_handler, CURRENT_IP, BACKEND_PORT),
         main_game_loop()
     )
 

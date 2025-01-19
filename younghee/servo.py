@@ -23,22 +23,31 @@ class Servo:
             logging.error(f"Error initializing servo: {e}")
 
     def turn_forwards(self):
-        logging.info("Turning servo forwards")
-        self.pwm.set_servo_pulsewidth(self.servo, 2500)
-        time.sleep(1)
-        self.pwm.set_servo_pulsewidth(self.servo, 0)
+        try:
+            logging.info("Turning servo forwards")
+            self.pwm.set_servo_pulsewidth(self.servo, 2500)
+            time.sleep(1)
+            self.pwm.set_servo_pulsewidth(self.servo, 0)
+        except Exception as e:
+            logging.error(f"Error turning servo forwards: {e}")
 
     def turn_halfway(self):
-        logging.info("Turning servo halfway")
-        self.pwm.set_servo_pulsewidth(self.servo, 1500)
-        time.sleep(1)
-        self.pwm.set_servo_pulsewidth(self.servo, 0)
+        try:
+            logging.info("Turning servo halfway")
+            self.pwm.set_servo_pulsewidth(self.servo, 1500)
+            time.sleep(1)
+            self.pwm.set_servo_pulsewidth(self.servo, 0)
+        except Exception as e:
+            logging.error(f"Error turning servo halfway: {e}")
 
     def turn_backwards(self):
-        logging.info("Turning servo backwards")
-        self.pwm.set_servo_pulsewidth(self.servo, 500)
-        time.sleep(1)
-        self.pwm.set_servo_pulsewidth(self.servo, 0)
+        try:
+            logging.info("Turning servo backwards")
+            self.pwm.set_servo_pulsewidth(self.servo, 500)
+            time.sleep(1)
+            self.pwm.set_servo_pulsewidth(self.servo, 0)
+        except Exception as e:
+            logging.error(f"Error turning servo backwards: {e}")
 
 if __name__ == "__main__":
     servo = Servo()
