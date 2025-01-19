@@ -92,7 +92,7 @@ async def backend_client(ws):
                     cv2.imshow("RPI video stream", frame)
                     cv2.waitKey(1)
 
-                    motion_contours = await motion_detector.process_frame(frame)
+                    motion_contours = motion_detector.process_frame(frame)
                     # detected_players = await identify_players(motion_contours, frame)
                     detected_players = [1, 2, 3]  # Dummy dat
                     for player_id in detected_players:
