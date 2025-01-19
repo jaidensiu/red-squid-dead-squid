@@ -6,6 +6,7 @@ import time
 import os
 import logging
 import random
+import base64
 from audio import Audio
 from servo import Servo
 from camera import Camera
@@ -52,6 +53,11 @@ async def mobile_app_handler(websocket):
             if not game_in_progress:
                 game_in_progress = True  # Set the game to in-progress when player info is received
                 num_players = len(packet.get("data", list()))
+                # Display the player images
+                for player_id, player_image in packet.get("data", dict()).items():
+                    with open(f"player_{player_id}.jpg", "wb") as f:
+                        f.write(base64.b64decode(player_image))
+
                 logging.info(f"Received players info, total players: {num_players}")
                 logging.info(f"Setting game in progress to: {game_in_progress}")
 
@@ -100,7 +106,7 @@ async def main_game_loop():
                 # 1. Start game
                 logging.info("Game is now starting...")
                 start_time = time.time()
-                end_time = start_time + MAX_GAME_TIME + COUNTDOWN_TIME
+                end_time = int(start_time + MAX_GAME_TIME + COUNTDOWN_TIME)
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
@@ -111,7 +117,7 @@ async def main_game_loop():
                     servo.turn_backwards()
                     await asyncio.sleep(1) # For dramatic effect
                     audio.play_audio("green_light.wav")
-                    wait_time = random.uniform(1, 5)
+                    wait_time = random.uniform(1, 1.75)
                     logging.info(f"Waiting for {wait_time} seconds...")
                     await asyncio.sleep(wait_time)
 

@@ -1,4 +1,5 @@
 import cv2
+import imutils
 
 # Load known player faces into memory (replace with actual image files)
 players_info = {
@@ -25,7 +26,9 @@ while True:
         break
 
     # Convert the frames to grayscale
+    frame2 = imutils.resize(frame2, width=750)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.GaussianBlur(gray2, (21, 21), 0)
 
     # Initialize first frame for comparison
     if frame1 is None:
@@ -47,6 +50,12 @@ while True:
         x, y, w, h = cv2.boundingRect(contour)
         motion_region = frame2[y:y+h, x:x+w]
 
+        # Draw a rectangle around the motion region
+        cv2.rectangle(frame2, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+
+
+
         # # Try to identify the player based on the motion region
         # matched_player_id = None
         # for player_id, player_image in players_info.items():
@@ -60,7 +69,7 @@ while True:
         # if matched_player_id:
         #     detected_players.append(matched_player_id)
 
-        
+
 
     # Update the first frame for the next iteration
     frame1 = gray2
