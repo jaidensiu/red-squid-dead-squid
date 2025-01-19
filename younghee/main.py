@@ -85,7 +85,10 @@ async def backend_handler(websocket):
 
             # Echo eliminated players data to the mobile app
             if mobile_app_socket:
-                await mobile_app_socket.send(json.dumps({"type": "eliminated_players", "data": "".join(eliminated_players)}))
+                await mobile_app_socket.send(json.dumps({
+                    "type": "eliminated_players",
+                    "data": "".join(map(str, eliminated_players))
+                }))
                 logging.info("Echoed eliminated players to mobile app")
 
             # Play the elimination audio
