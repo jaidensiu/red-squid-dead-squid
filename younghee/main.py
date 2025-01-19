@@ -131,9 +131,8 @@ async def main_game_loop():
                     await asyncio.sleep(wait_time)
 
                     # 3. Red light, turn head around
-                    light_number = random.randint(1, 2)
                     servo.turn_backwards()
-                    audio.play_audio(f"audio/red_light_{light_number}.wav")
+                    audio.play_audio(f"audio/red_light_2.wav")
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
                     if backend_socket:
