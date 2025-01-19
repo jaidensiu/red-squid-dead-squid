@@ -77,6 +77,8 @@ fun PlayersScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
+                    // TODO: Amanda maybe try out diamond overlay
+                    //  just wrap everything within the parent's scope around another Box with the overlay
                     when {
                         idx < state.value.players.size && idx >= 0 -> {
                             Image(

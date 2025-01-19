@@ -1,6 +1,8 @@
 package com.example.squid.data
 
+import com.example.squid.ui.players.Player
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.url
@@ -10,13 +12,19 @@ import io.ktor.websocket.readText
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class GameRepository {
-    private val client = HttpClient { install(WebSockets) }
+class GameWebSocket {
+    private val client = HttpClient(CIO) {
+        install(WebSockets)
+    }
     private var session: WebSocketSession? = null
 
     suspend fun connect() {
-        session = client.webSocketSession { url(URL) }
-        listenForMessages()
+        try {
+            session = client.webSocketSession { url(URL) }
+            listenForMessages()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private suspend fun listenForMessages() {
@@ -60,16 +68,16 @@ class GameRepository {
         // Handle game over
     }
 
-    suspend fun sendPlayersInfo(players: List<String>) {
+    suspend fun sendPlayers(players: List<Player>) {
         val message = mapOf(
             "type" to "players_info",
-            "data" to players
+            "data" to players.forEach { it.image }
         )
         val jsonMessage = Json.encodeToString(message)
         session?.send(Frame.Text(jsonMessage))
     }
 
     companion object {
-        private const val URL = "ws://10.19.133.46:8765"
+        private const val URL = "ws://10.19.130.170:8765"
     }
 }
