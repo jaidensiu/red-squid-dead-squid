@@ -140,7 +140,7 @@ async def main_game_loop():
                         await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
                     logging.info("Capturing video and sending to backend...")
-                    time_end = time.time() + 10  # Capture for 5 seconds
+                    time_end = time.time() + 5  # Capture for 5 seconds
                     while time.time() < time_end:
                         encoded_buffer = camera.capture_and_encode_image()
                         if encoded_buffer is not None:
