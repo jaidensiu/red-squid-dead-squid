@@ -6,7 +6,7 @@ players_info = {
 }
 
 # Initialize camera
-camera = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 if not camera.isOpened():
     raise ValueError("Failed to open camera.")
 
