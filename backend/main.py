@@ -46,7 +46,6 @@ async def send_eliminated_players(ws, eliminated_players):
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
-    count = 0
 
     while True:
         try:
@@ -91,8 +90,6 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                    # cv2.imshow("RPI video stream", frame)
-                    # cv2.waitKey(1)
 
                     motion_contours = motion_detector.process_frame(frame)
                     for contour in motion_contours:
@@ -107,38 +104,13 @@ async def backend_client(ws):
                     cv2.waitKey(1)
 
                     # detected_players = await identify_players(motion_contours, frame)
-                    if count == 1:
-                        detected_players = [2]
-                    elif count == 2:
-                        detected_players = [1]
-                    elif count == 3:
-                        detected_players = [3]
 
-                    # detected_players = [1, 2, 3]  # Dummy dat
+                    detected_players = [1, 2, 3]  # Dummy dat
                     for player_id in detected_players:
                         if player_id not in all_eliminated_players and player_id <= num_players:
                             eliminated_players.append(player_id)
                             all_eliminated_players.add(player_id)
                             logging.info(f"Player {player_id} eliminated")
-                else:
-                    # Handle frame data
-                    frame_data = base64.b64decode(packet.get("data"))
-                    frame_array = np.frombuffer(frame_data, dtype=np.uint8)
-                    frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                    # cv2.imshow("RPI video stream", frame)
-                    # cv2.waitKey(1)
-
-                    motion_contours = motion_detector.process_frame(frame)
-                    for contour in motion_contours:
-                        (x, y, w, h) = cv2.boundingRect(contour)
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-                    # bodies = motion_detector.detect_bodies(frame)
-                    # for (x, y, w, h) in bodies:
-                    #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-                    cv2.imshow("Motion Detection", frame)
-                    cv2.waitKey(1)
 
         except websockets.exceptions.ConnectionClosedError as e:
             logging.info(f"WebSocket connection closed: {e}")
