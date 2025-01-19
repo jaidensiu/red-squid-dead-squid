@@ -43,6 +43,7 @@ camera = Camera()  # Initialize the camera
 
 async def mobile_app_handler(websocket):
     logging.info(f"Mobile app connected: {websocket.remote_address}")
+    await websocket.send(json.dumps({"type": "connected", "data": str("True")}))
 
     global mobile_app_socket, backend_socket, game_in_progress, num_players
     mobile_app_socket = websocket
@@ -68,6 +69,8 @@ async def mobile_app_handler(websocket):
                     logging.info(f"Echoed players info to backend")
             else:
                 logging.warning("Game is already in progress, ignoring players info")
+        else:
+            logging.warning(f"Unknown message type from mobile app: {packet}")
 
 async def backend_handler(websocket):
     logging.info(f"Backend connected: {websocket.remote_address}")

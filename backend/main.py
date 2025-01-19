@@ -6,6 +6,7 @@ import json
 import time
 import os
 import logging
+from vision import MotionDetector
 import base64
 import dotenv
 dotenv.load_dotenv()
@@ -15,6 +16,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%H:%M:%S')
 
+# Global constants
 RPI_IP = os.environ['RPI_IP']
 EVIN_IP = os.environ['EVIN_IP']
 CURRENT_IP = EVIN_IP
@@ -22,11 +24,15 @@ BACKEND_PORT = os.environ['BACKEND_PORT']
 CURRENT_SERVER_URL = f"ws://{CURRENT_IP}:{BACKEND_PORT}"
 MAX_NUM_PLAYERS = 4
 
+# Global variables
 game_in_progress = False
 players_info = [None] * 5
 num_players = 0
 all_eliminated_players = set() # A list to track eliminated players
 is_streaming = False # Flag to track if video frames are currently being processed
+
+# Initialize motion detector and player identifier
+motion_detector = MotionDetector()
 
 async def send_eliminated_players(ws, eliminated_players):
     # There is already a check making sure newly eliminated players have not been eliminated before
@@ -37,53 +43,8 @@ async def send_eliminated_players(ws, eliminated_players):
     # Update the list of all eliminated players
     all_eliminated_players.update(eliminated_players)
 
-async def identify_players(motion_contours, frame):
-    global players_info
-    detected_players = []
-    pass
-
-async def detect_motion(frame1, frame2):
-    """
-    Detect motion between two frames and identify the players based on motion.
-    """
-    # Convert frames to grayscale
-    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-
-    # Calculate the absolute difference between frames
-    frame_diff = cv2.absdiff(gray1, gray2)
-    _, thresh = cv2.threshold(frame_diff, 50, 255, cv2.THRESH_BINARY)
-
-    # Find contours in the thresholded image (indicating movement)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    for contour in contours:
-        if cv2.contourArea(contour) < 500:  # Ignore small areas of motion
-            continue
-
-        # Get the bounding box of the motion region
-        x, y, w, h = cv2.boundingRect(contour)
-        motion_region = frame2[y:y+h, x:x+w]
-
-        # # Try to identify the player based on the motion region
-        # matched_player_id = None
-        # for player_id, player_image in players_info.items():
-        #     res = cv2.matchTemplate(motion_region, player_image, cv2.TM_CCOEFF_NORMED)
-        #     _, max_val, _, _ = cv2.minMaxLoc(res)
-
-        #     if max_val > 0.7:  # Threshold for considering a match
-        #         matched_player_id = player_id
-        #         break
-
-        # if matched_player_id:
-        #     detected_players.append(matched_player_id)
-
-    # return detected_players
-    return []
-
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
-    previous_frame = None
     eliminated_players = list()
 
     while True:
@@ -119,7 +80,6 @@ async def backend_client(ws):
                     logging.info(f"Video stream stopped, sending eliminated players...")
                     await send_eliminated_players(ws, eliminated_players)
                     eliminated_players.clear()
-                    previous_frame = None
                     is_streaming = False
                     cv2.destroyAllWindows()  # Ensures all OpenCV windows are closed at this point
 
@@ -132,17 +92,15 @@ async def backend_client(ws):
                     cv2.imshow("RPI video stream", frame)
                     cv2.waitKey(1)
 
-                    if previous_frame is not None:
-                        # motion_contours = await detect_motion(previous_frame, frame)
-                        # detected_players = await identify_players(motion_contours, frame)
-                        detected_players = [1, 2, 3]  # Dummy data
-                        for player_id in detected_players:
-                            if player_id not in all_eliminated_players and player_id <= num_players:
-                                eliminated_players.append(player_id)
-                                all_eliminated_players.add(player_id)
-                                logging.info(f"Player {player_id} eliminated")
+                    motion_contours = await motion_detector.process_frame(frame)
+                    # detected_players = await identify_players(motion_contours, frame)
+                    detected_players = [1, 2, 3]  # Dummy dat
+                    for player_id in detected_players:
+                        if player_id not in all_eliminated_players and player_id <= num_players:
+                            eliminated_players.append(player_id)
+                            all_eliminated_players.add(player_id)
+                            logging.info(f"Player {player_id} eliminated")
 
-                    previous_frame = frame
 
         except websockets.exceptions.ConnectionClosedError as e:
             logging.info(f"WebSocket connection closed: {e}")

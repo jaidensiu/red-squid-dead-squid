@@ -1,81 +1,67 @@
 import cv2
-import imutils
+import numpy as np
+from collections import deque
 
-# Load known player faces into memory (replace with actual image files)
-players_info = {
-    'player1': cv2.imread('player1.jpg', cv2.IMREAD_GRAYSCALE),
-}
+class MotionDetector:
+    def __init__(self, frames_to_persist=5, min_area=750, blur_kernel=(11, 11), threshold=30):
+        self.frames_to_persist = frames_to_persist
+        self.min_area = min_area
+        self.blur_kernel = blur_kernel
+        self.threshold = threshold
+        self.frame_queue = deque(maxlen=frames_to_persist)
+        self.delay_counter = 0
+        self.first_frame = None
+        self.next_frame = None
 
-# Initialize camera
-camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-if not camera.isOpened():
-    raise ValueError("Failed to open camera.")
+    def process_frame(self, frame):
+        # Convert and blur the frame
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, self.blur_kernel, 0)
 
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-camera.set(cv2.CAP_PROP_FPS, 30)
+        # Initialize first frame for comparison
+        if self.first_frame is None:
+            self.first_frame = gray
+            return []
 
-frame1 = None
-while True:
-    ret, frame2 = camera.read()
-    if not ret:
-        break
+        self.delay_counter += 1
+        if self.delay_counter > self.frames_to_persist:
+            self.delay_counter = 0
+            self.first_frame = self.next_frame
 
-    cv2.imshow("Camera", frame2)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+        # Set the next frame to compare (the current frame)
+        self.next_frame = gray
 
-    # Convert the frames to grayscale
-    frame2 = imutils.resize(frame2, width=750)
-    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.GaussianBlur(gray2, (21, 21), 0)
+        # Calculate the absolute difference between frames
+        frame_diff = cv2.absdiff(self.first_frame, self.next_frame)
+        _, thresh = cv2.threshold(frame_diff, self.threshold, 255, cv2.THRESH_BINARY)
 
-    # Initialize first frame for comparison
-    if frame1 is None:
-        frame1 = gray2
-        continue
+        # Dilate the thresholded image to fill in holes
+        thresh = cv2.dilate(thresh, None, iterations=2)
 
-    # Calculate the absolute difference between frames
-    frame_diff = cv2.absdiff(frame1, gray2)
-    _, thresh = cv2.threshold(frame_diff, 50, 255, cv2.THRESH_BINARY)
+        # Find contours in the thresholded image
+        contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Find contours in the thresholded image (indicating movement)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Filter out small contours
+        motion_contours = [contour for contour in contours if cv2.contourArea(contour) > self.min_area]
+        return motion_contours
 
-    for contour in contours:
-        if cv2.contourArea(contour) < 500:  # Ignore small areas of motion
-            continue
+if __name__ == "__main__":
+    motion_detector = MotionDetector()
 
-        # Get the bounding box of the motion region
-        x, y, w, h = cv2.boundingRect(contour)
-        motion_region = frame2[y:y+h, x:x+w]
+    # Process frames from video capture
+    camera = cv2.VideoCapture(0)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    camera.set(cv2.CAP_PROP_FPS, 30)
 
-        # Draw a rectangle around the motion region
-        cv2.rectangle(frame2, (x, y), (x+w, y+h), (0, 255, 0), 2)
+    while True:
+        ret, frame = camera.read()
+        if ret:
+            contours = motion_detector.process_frame(frame)
+            for contour in contours:
+                (x, y, w, h) = cv2.boundingRect(contour)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.imshow("Motion Detection", frame)
 
-
-
-
-        # # Try to identify the player based on the motion region
-        # matched_player_id = None
-        # for player_id, player_image in players_info.items():
-        #     res = cv2.matchTemplate(motion_region, player_image, cv2.TM_CCOEFF_NORMED)
-        #     _, max_val, _, _ = cv2.minMaxLoc(res)
-
-        #     if max_val > 0.7:  # Threshold for considering a match
-        #         matched_player_id = player_id
-        #         break
-
-        # if matched_player_id:
-        #     detected_players.append(matched_player_id)
-
-
-
-    # Update the first frame for the next iteration
-    frame1 = gray2
-
-    print("Detected players:", detected_players)
-
-# Cleanup
-camera.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
