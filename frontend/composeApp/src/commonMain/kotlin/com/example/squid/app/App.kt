@@ -16,6 +16,7 @@ import com.example.squid.ui.landing.LandingScreen
 import com.example.squid.ui.players.PlayersScreen
 import com.example.squid.ui.players.PlayersViewModel
 import com.example.squid.ui.theme.SquidTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -29,6 +30,7 @@ fun App() {
         client = httpClient
     )
     val coroutineScope = rememberCoroutineScope()
+    val playersViewModel = koinViewModel<PlayersViewModel>()
 
     LaunchedEffect(Unit) {
         webSocket.connect()
@@ -47,13 +49,12 @@ fun App() {
                 }
 
                 composable<Route.Players> {
-                    val viewModel = koinViewModel<PlayersViewModel>()
-
                     PlayersScreen(
-                        viewModel = viewModel,
+                        viewModel = playersViewModel,
                         onStartGame = {
                             coroutineScope.launch {
-                                webSocket.sendPlayers(viewModel.state.value.players)
+                                webSocket.sendPlayers(playersViewModel.state.value.players)
+                                delay(timeMillis = 5000L)
                             }
                             navController.navigate(route = Route.Countdown)
                         }
@@ -66,7 +67,8 @@ fun App() {
 
                 composable<Route.Game> {
                     GameScreen(
-                        viewModel = gameViewModelViewModel
+                        gameViewModel = gameViewModelViewModel,
+                        playersViewModel = playersViewModel
                     )
                 }
             }
