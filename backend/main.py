@@ -16,8 +16,10 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%H:%M:%S')
 
 RPI_IP = os.environ['RPI_IP']
+EVIN_IP = os.environ['EVIN_IP']
+CURRENT_IP = EVIN_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
-RPI_SERVER_URL = f"ws://{RPI_IP}:{BACKEND_PORT}"
+CURRENT_SERVER_URL = f"ws://{CURRENT_IP}:{BACKEND_PORT}"
 
 game_in_progress = False
 players_info = list()  # A list to store player images, indexed by player ID
@@ -145,8 +147,8 @@ async def backend_client(ws):
             break
 
 async def main():
-    async with websockets.connect(RPI_SERVER_URL) as ws:
-        logging.info(f"Connected to WebSocket server at {RPI_SERVER_URL}")
+    async with websockets.connect(CURRENT_SERVER_URL) as ws:
+        logging.info(f"Connected to WebSocket server at {CURRENT_SERVER_URL}")
         await backend_client(ws)
 
 asyncio.run(main())
