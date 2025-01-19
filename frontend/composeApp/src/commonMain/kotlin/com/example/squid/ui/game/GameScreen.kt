@@ -50,6 +50,9 @@ fun GameScreen(
         while (gameState.value.endEpoch != null) {
 //            val currentTime = Clock.System.now().epochSeconds
 //            remainingTime = state.value.endEpoch?.minus(currentTime) ?: 0L
+            if (remainingTime == 0) {
+                break
+            }
             delay(1.seconds)
             remainingTime--
         }
