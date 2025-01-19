@@ -9,6 +9,7 @@ import logging
 from vision import MotionDetector
 import base64
 import dotenv
+import face_recognition
 dotenv.load_dotenv()
 
 # Set up basic configuration for logging
@@ -65,7 +66,7 @@ async def backend_client(ws):
 
                     player_image_array = np.frombuffer(player_image_data_decoded, dtype=np.uint8)
                     player_image = cv2.imdecode(player_image_array, cv2.IMREAD_COLOR)
-                    players_info[player_id] = player_image
+                    players_info[player_id] = face_recognition.face_encodings(player_image)
                     logging.info(f"Loaded image for player {player_id}")
 
             elif packet.get("type") == "start_video_stream":
@@ -73,6 +74,8 @@ async def backend_client(ws):
                 eliminated_players.clear() # Just in case
                 previous_frame = None # Just in case
                 is_streaming = True
+                motion_detector.first_frame = None
+                motion_detector.set_regions(num_players)
                 count += 1
 
             elif packet.get("type") == "stop_video_stream":
@@ -90,22 +93,21 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-
+                    print(frame.shape)
                     motion_contours = motion_detector.process_frame(frame)
+                    detected_players = []
                     for contour in motion_contours:
                         (x, y, w, h) = cv2.boundingRect(contour)
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-                    # bodies = motion_detector.detect_bodies(frame)
-                    # for (x, y, w, h) in bodies:
-                    #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        label = motion_detector.get_label(contour)
+                        print(label)
+                        cv2.putText(
+                            frame, f'Player {label}', (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1
+                        )
+                        detected_players.append(label)
 
                     cv2.imshow("Motion Detection", frame)
                     cv2.waitKey(1)
 
-                    # detected_players = await identify_players(motion_contours, frame)
-
-                    detected_players = [1, 2, 3]  # Dummy dat
                     for player_id in detected_players:
                         if player_id not in all_eliminated_players and player_id <= num_players:
                             eliminated_players.append(player_id)
