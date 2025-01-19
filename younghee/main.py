@@ -125,7 +125,6 @@ async def main_game_loop():
                 while True:
                     # 2. Green light and random wait time
                     servo.turn_forwards()
-                    await asyncio.sleep(1)  # Wait for the servo to turn
                     audio.play_audio("audio/green_light.wav")
                     wait_time = random.uniform(1, 1.75)
                     logging.info(f"Waiting for {wait_time} seconds...")

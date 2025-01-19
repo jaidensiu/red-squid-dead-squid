@@ -16,6 +16,7 @@ class Audio:
 
     def play_audio(self, file_path):
         try:
+            # Don't fade in or out, just play the sound
             sound = pygame.mixer.Sound(file_path)
             sound.play()
             pygame.time.wait(int(sound.get_length() * 1000))  # Wait for the sound to finish

@@ -46,10 +46,7 @@ async def send_eliminated_players(ws, eliminated_players):
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
-
-    # Output video file, mp4 format
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter('cv/output.mp4', fourcc, 20.0, (960, 540))
+    frame_count = 0
 
     while True:
         try:
@@ -115,7 +112,10 @@ async def backend_client(ws):
 
                     # Show the frame with motion contours, show a smaller cv2 window
                     cv2.imshow("Motion and Body", combined_frame)
-                    out.write(frame)
+                    # Save the frame to a file
+                    if frame_count % 30 == 0:
+                        cv2.imwrite(f"frames/frame_{frame_count}.jpg", combined_frame)
+                    frame_count += 1
                     cv2.waitKey(1)
 
                     # detected_players = await identify_players(motion_contours, frame)
@@ -137,7 +137,6 @@ async def backend_client(ws):
             logging.info(f"Unexpected error: {e}")
             break
         finally:
-            out.release()
             cv2.destroyAllWindows()
 
 async def main():
