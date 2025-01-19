@@ -92,7 +92,7 @@ async def backend_handler(websocket):
             logging.info("Playing elimination audio...")
             audio.play_audio("elimination.wav")
             for player_id in eliminated_players:
-                audio.play_audio(f"player_{player_id}.wav")
+                audio.play_audio(f"audio/player_{player_id}.wav")
 
             # Set the event to signal the game loop to proceed
             eliminated_players_event.set()
@@ -117,14 +117,14 @@ async def main_game_loop():
                     # 2. Green light and random wait time
                     servo.turn_backwards()
                     await asyncio.sleep(1) # For dramatic effect
-                    audio.play_audio("green_light.wav")
+                    audio.play_audio("audio/green_light.wav")
                     wait_time = random.uniform(1, 1.75)
                     logging.info(f"Waiting for {wait_time} seconds...")
                     await asyncio.sleep(wait_time)
 
                     # 3. Red light, turn head around
                     light_number = random.randint(1, 2)
-                    audio.play_audio_without_wait(f"red_light_{light_number}.wav")
+                    audio.play_audio_without_wait(f"audio/red_light_{light_number}.wav")
                     servo.turn_forwards()
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
@@ -161,7 +161,7 @@ async def main_game_loop():
                             await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
 
                         logging.info("Playing game end audio...")
-                        audio.play_audio("game_end.wav")
+                        audio.play_audio("audio/game_end.wav")
                         game_in_progress = False
                         break
 
