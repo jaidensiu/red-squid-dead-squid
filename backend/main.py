@@ -46,7 +46,7 @@ async def send_eliminated_players(ws, eliminated_players):
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
-    count = 1
+    count = 0
 
     while True:
         try:
@@ -94,14 +94,14 @@ async def backend_client(ws):
                     # cv2.imshow("RPI video stream", frame)
                     # cv2.waitKey(1)
 
-                    # motion_contours = motion_detector.process_frame(frame)
-                    # for contour in motion_contours:
-                    #     (x, y, w, h) = cv2.boundingRect(contour)
-                    #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    motion_contours = motion_detector.process_frame(frame)
+                    for contour in motion_contours:
+                        (x, y, w, h) = cv2.boundingRect(contour)
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-                    bodies = motion_detector.detect_bodies(frame)
-                    for (x, y, w, h) in bodies:
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    # bodies = motion_detector.detect_bodies(frame)
+                    # for (x, y, w, h) in bodies:
+                    #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
                     cv2.imshow("Motion Detection", frame)
                     cv2.waitKey(1)

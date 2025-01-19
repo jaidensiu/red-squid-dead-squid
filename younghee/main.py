@@ -132,7 +132,7 @@ async def main_game_loop():
 
                     # 3. Red light, turn head around
                     servo.turn_backwards()
-                    audio.play_audio(f"audio/red_light_2_padded.wav")
+                    audio.play_audio(f"audio/red_light_2d_padded.wav")
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
                     if backend_socket:
@@ -140,7 +140,7 @@ async def main_game_loop():
                         await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
                     logging.info("Capturing video and sending to backend...")
-                    time_end = time.time() + 5  # Capture for 5 seconds
+                    time_end = time.time() + 3  # Capture for 5 seconds
                     while time.time() < time_end:
                         encoded_buffer = camera.capture_and_encode_image()
                         if encoded_buffer is not None:
