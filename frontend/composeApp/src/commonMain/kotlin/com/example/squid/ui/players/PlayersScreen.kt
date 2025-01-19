@@ -60,9 +60,7 @@ fun PlayersScreen(
                         .width(100.dp)
                         .clickable(
                             enabled = idx <= state.value.players.size,
-                            onClick = {
-                                launchCamera()
-                            }
+                            onClick = launchCamera
                         ),
                     contentAlignment = Alignment.Center
                 ) {

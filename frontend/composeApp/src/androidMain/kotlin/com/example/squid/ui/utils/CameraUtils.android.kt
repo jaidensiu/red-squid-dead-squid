@@ -1,6 +1,5 @@
 package com.example.squid.ui.utils
 
-import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
