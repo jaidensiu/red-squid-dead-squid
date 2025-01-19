@@ -117,7 +117,7 @@ async def main_game_loop():
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": str(end_time)}))
-                await asyncio.sleep(COUNTDOWN_TIME)  # Wait for the mobile app to receive the game end time
+                await asyncio.sleep(COUNTDOWN_TIME - 2)  # Wait for the mobile app to receive the game end time
 
                 logging.info("Playing game start audio...")
                 audio.play_audio("audio/game_start.wav")
@@ -125,6 +125,7 @@ async def main_game_loop():
                 while True:
                     # 2. Green light and random wait time
                     servo.turn_forwards()
+                    await asyncio.sleep(1)  # Wait for the servo to turn
                     audio.play_audio("audio/green_light.wav")
                     wait_time = random.uniform(1, 1.75)
                     logging.info(f"Waiting for {wait_time} seconds...")
@@ -132,7 +133,7 @@ async def main_game_loop():
 
                     # 3. Red light, turn head around
                     light_number = random.randint(1, 2)
-                    audio.play_audio_without_wait(f"audio/red_light_{light_number}.wav")
+                    audio.play_audio(f"audio/red_light_{light_number}.wav")
                     servo.turn_backwards()
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
