@@ -59,6 +59,6 @@ class Servo:
 
 if __name__ == "__main__":
     servo = Servo()
-    servo.turn_halfway()
+    servo.turn_forwards()
     servo.turn_backwards()
     servo.stop()
