@@ -90,7 +90,7 @@ async def backend_handler(websocket):
 
             # Play the elimination audio
             logging.info("Playing elimination audio...")
-            audio.play_audio("elimination.wav")
+            audio.play_audio("audio/eliminated.wav")
             for player_id in eliminated_players:
                 audio.play_audio(f"audio/player_{player_id}.wav")
 
@@ -105,13 +105,16 @@ async def main_game_loop():
         while True:
             if game_in_progress:
                 # 1. Start game
-                logging.info("Game is now starting...")
+                logging.info("Entering game start sequence...")
                 start_time = time.time()
                 end_time = int(start_time + MAX_GAME_TIME + COUNTDOWN_TIME)
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
                 await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
+
+                logging.info("Playing game start audio...")
+                audio.play_audio("audio/game_start.wav")
 
                 while True:
                     # 2. Green light and random wait time
