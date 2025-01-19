@@ -165,7 +165,7 @@ async def main_game_loop():
             else:
                 await asyncio.sleep(1)  # Idle when the game is not active
     finally:
-        camera.close()
+        await camera.close()
 
 async def main():
     # Start WebSocket servers for mobile app and backend

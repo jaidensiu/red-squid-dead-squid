@@ -22,7 +22,7 @@ BACKEND_PORT = os.environ['BACKEND_PORT']
 CURRENT_SERVER_URL = f"ws://{CURRENT_IP}:{BACKEND_PORT}"
 
 game_in_progress = False
-players_info = list()  # A list to store player images, indexed by player ID
+players_info = [None] * 5
 all_eliminated_players = set() # A list to track eliminated players
 is_streaming = False # Flag to track if video frames are currently being processed
 
@@ -92,8 +92,9 @@ async def backend_client(ws):
 
             if packet.get("type") == "players_info":
                 # Handle player image data
-                for player_id, player_image_data in packet.get("data", list()).items():
+                for player_id, player_image_data in enumerate(packet.get("data", list())):
                     # Base64 decode the player image data
+                    player_id += 1  # Player IDs are 1-indexed
                     player_image_data_decoded = base64.b64decode(player_image_data)
                     player_image_array = np.frombuffer(player_image_data_decoded, dtype=np.uint8)
                     player_image = cv2.imdecode(player_image_array, cv2.IMREAD_COLOR)
