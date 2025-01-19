@@ -1,5 +1,6 @@
 package com.example.squid.ui.landing
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,13 +45,14 @@ fun LandingScreen(onRegisterPlayers: () -> Unit) {
             modifier = Modifier.background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colors.primary.copy(alpha = 0.5f),
+                        MaterialTheme.colors.primary.copy(alpha = 0.7f),
                         MaterialTheme.colors.primary.copy(alpha = 0.2f)
                     )
                 ),
                 shape = RoundedCornerShape(48.dp)
             ),
             shape = RoundedCornerShape(48.dp),
+            border = BorderStroke(width = 2.dp, color = MaterialTheme.colors.primary),
             colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
         ) {
             Text(

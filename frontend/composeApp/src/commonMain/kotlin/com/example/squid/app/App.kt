@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.squid.ui.countdown.CountdownScreen
 import com.example.squid.ui.players.PlayersScreen
 import com.example.squid.ui.theme.SquidTheme
 import com.example.squid.ui.landing.LandingScreen
@@ -31,8 +32,17 @@ fun App() {
                     val viewModel = koinViewModel<PlayersViewModel>()
 
                     PlayersScreen(
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        onNext = { navController.navigate(route = Route.Countdown) }
                     )
+                }
+
+                composable<Route.Countdown> {
+                    CountdownScreen(onFinish = { navController.navigate(route = Route.Playing) })
+                }
+
+                composable<Route.Playing> {
+
                 }
             }
         }

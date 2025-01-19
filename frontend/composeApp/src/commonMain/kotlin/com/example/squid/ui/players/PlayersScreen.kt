@@ -2,6 +2,7 @@ package com.example.squid.ui.players
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,19 +10,26 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
+import com.example.squid.ui.theme.SevenSegmentFontFamily
 import com.example.squid.ui.theme.ZenDotsFontFamily
 import com.example.squid.ui.utils.rememberCameraLauncher
 import org.jetbrains.compose.resources.painterResource
@@ -31,7 +39,8 @@ import redsquiddeadsquid.composeapp.generated.resources.plus
 
 @Composable
 fun PlayersScreen(
-    viewModel: PlayersViewModel = koinViewModel()
+    viewModel: PlayersViewModel = koinViewModel(),
+    onNext: () -> Unit
 ) {
     val state = viewModel.state.collectAsState()
     val launchCamera = rememberCameraLauncher { viewModel.onAddPlayer(it) }
@@ -59,8 +68,12 @@ fun PlayersScreen(
                         .height(100.dp)
                         .width(100.dp)
                         .clickable(
-                            enabled = idx <= state.value.players.size,
+                            enabled = idx == state.value.players.size,
                             onClick = launchCamera
+                        )
+                        .border(
+                            width = if (idx == state.value.players.size) 1.dp else 0.dp,
+                            color = if (idx == state.value.players.size) Color.White else Color.Transparent
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -68,8 +81,31 @@ fun PlayersScreen(
                         idx < state.value.players.size && idx >= 0 -> {
                             Image(
                                 painter = rememberAsyncImagePainter(model = state.value.players[idx].image),
-                                contentDescription = null
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
                             )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
+                                Text(
+                                    text = "OO${idx + 1}",
+                                    color = Color.White,
+                                    fontSize = 24.sp,
+                                    fontFamily = SevenSegmentFontFamily(),
+                                    modifier = Modifier.padding(4.dp),
+                                    style = TextStyle(
+                                        shadow = Shadow(
+                                            color = MaterialTheme.colors.secondary,
+                                            offset = Offset(x = 0f, y = 0f),
+                                            blurRadius = 10f
+                                        )
+                                    )
+                                )
+                            }
                         }
 
                         idx == state.value.players.size -> {
@@ -87,5 +123,22 @@ fun PlayersScreen(
             text = "${state.value.players.size} players registered. Click on the \"+\" to add a player.",
             color = Color.White
         )
+        Spacer(modifier = Modifier.height(48.dp))
+        Row(
+            modifier = Modifier
+                .padding(end = 24.dp)
+                .fillMaxWidth(fraction = 0.6f),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = onNext,
+                enabled = state.value.players.size > 1
+            ) {
+                Text(
+                    text = "NEXT ->",
+                    color = Color.White.copy(alpha = if (state.value.players.size > 1) 1f else 0.5f)
+                )
+            }
+        }
     }
 }

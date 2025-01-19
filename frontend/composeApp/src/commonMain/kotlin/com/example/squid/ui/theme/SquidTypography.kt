@@ -10,15 +10,15 @@ import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Bold
 import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Medium
 import redsquiddeadsquid.composeapp.generated.resources.SplineSansMono_Regular
 import redsquiddeadsquid.composeapp.generated.resources.ZenDots_Regular
+import redsquiddeadsquid.composeapp.generated.resources._7segment
 import redsquiddeadsquid.composeapp.generated.resources.game_of_squids
+
+// Font families
 
 @Composable
 fun SquidFontFamily() = FontFamily(
     Font(Res.font.game_of_squids, FontWeight.Normal)
 )
-
-@Composable
-fun SquidTypography() = Typography(defaultFontFamily = SquidFontFamily())
 
 @Composable
 fun SplineSansMonoFamily() = FontFamily(
@@ -28,9 +28,16 @@ fun SplineSansMonoFamily() = FontFamily(
 )
 
 @Composable
-fun SplineSansMonoTypography() = Typography(defaultFontFamily = SplineSansMonoFamily())
-
-@Composable
 fun ZenDotsFontFamily() = FontFamily(
     Font(Res.font.ZenDots_Regular)
 )
+
+@Composable
+fun SevenSegmentFontFamily() = FontFamily(
+    Font(Res.font._7segment)
+)
+
+// Typographies
+
+@Composable
+fun SplineSansMonoTypography() = Typography(defaultFontFamily = SplineSansMonoFamily())

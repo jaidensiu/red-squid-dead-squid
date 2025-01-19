@@ -11,4 +11,10 @@ sealed interface Route {
 
     @Serializable
     data object Players : Route
+
+    @Serializable
+    data object Countdown : Route
+
+    @Serializable
+    data object Playing : Route
 }
