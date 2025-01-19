@@ -124,8 +124,7 @@ async def main_game_loop():
 
                 while True:
                     # 2. Green light and random wait time
-                    servo.turn_backwards()
-                    await asyncio.sleep(1) # For dramatic effect
+                    servo.turn_forwards()
                     audio.play_audio("audio/green_light.wav")
                     wait_time = random.uniform(1, 1.75)
                     logging.info(f"Waiting for {wait_time} seconds...")
@@ -134,7 +133,7 @@ async def main_game_loop():
                     # 3. Red light, turn head around
                     light_number = random.randint(1, 2)
                     audio.play_audio_without_wait(f"audio/red_light_{light_number}.wav")
-                    servo.turn_forwards()
+                    servo.turn_backwards()
 
                     # 4. Start capturing video for 10 seconds at 30 FPS
                     if backend_socket:
