@@ -5,11 +5,12 @@ package com.example.squid.data
 import com.example.squid.ui.game.GameViewModel
 import com.example.squid.ui.players.Player
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.url
 import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
+import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.io.encoding.Base64
@@ -19,15 +20,28 @@ class GameWebSocket(
     private val viewModel: GameViewModel,
     private val client: HttpClient
 ) {
-    private var session: WebSocketSession? = null
+    private var session: DefaultClientWebSocketSession? = null
+    private val maxRetries = 3
+    private val retryDelay = 2000L
 
     suspend fun connect() {
-        try {
-            session = client.webSocketSession { url(URL) }
-            listenForMessages()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        var attempt = 0
+        while (attempt < maxRetries) {
+            try {
+                session = client.webSocketSession { url(URL) }
+                if (session != null) {
+                    listenForMessages()
+                    return
+                } else {
+                    println("Failed to establish WebSocket session, retrying...")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            attempt++
+            delay(retryDelay)
         }
+        println("Failed to establish WebSocket session after $maxRetries attempts")
     }
 
     private suspend fun listenForMessages() {
@@ -82,7 +96,15 @@ class GameWebSocket(
             data = players.map { Base64.encode(it.image) }
         )
         val jsonMessage = Json.encodeToString(message)
-        session?.outgoing?.send(Frame.Text(jsonMessage))
+        println("GameWebSocket.sendPlayers.session $session")
+        try {
+            session!!.flush()
+            session!!.outgoing.send(Frame.Text(jsonMessage))
+            println("GameWebSocket.sendPlayers Successful")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("GameWebSocket.sendPlayers !Successful")
+        }
     }
 
     companion object {

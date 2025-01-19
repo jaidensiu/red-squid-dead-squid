@@ -1,6 +1,7 @@
 package com.example.squid.ui.game
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -16,26 +17,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import com.example.squid.ui.theme.SevenSegmentFontFamily
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun GameScreen(viewModel: GameViewModel = koinViewModel()) {
     val state = viewModel.state.collectAsState()
-    var remainingTime by remember { mutableStateOf(value = 0L) }
+    var remainingTime by remember { mutableStateOf(value = 60L) }
 
     LaunchedEffect(state.value.endEpoch) {
-        while (true) {
-            val currentTime = Clock.System.now().epochSeconds
-            remainingTime = state.value.endEpoch?.minus(currentTime) ?: 0L
+        while (state.value.endEpoch != null) {
+//            val currentTime = Clock.System.now().epochSeconds
+//            remainingTime = state.value.endEpoch?.minus(currentTime) ?: 0L
             delay(1.seconds)
+            remainingTime--
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val minutes = remainingTime / 60
         val seconds = remainingTime % 60
