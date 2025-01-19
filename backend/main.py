@@ -18,27 +18,21 @@ logging.basicConfig(level=logging.INFO,
 RPI_IP = os.environ['RPI_IP']
 BACKEND_PORT = os.environ['BACKEND_PORT']
 RPI_SERVER_URL = f"ws://{RPI_IP}:{BACKEND_PORT}"
+
 game_in_progress = False
-players_info = {}  # A dictionary that stores player information (e.g., images of the players)
+players_info = list()  # A list to store player images, indexed by player ID
+all_eliminated_players = set() # A list to track eliminated players
+is_streaming = False # Flag to track if video frames are currently being processed
 
-# List to store eliminated players (by player ID or other unique identifiers)
-eliminated_players = []
-
-# Flag to track if video frames are currently being processed
-is_streaming = False
-last_frame_time = time.time()
-
-async def send_eliminated_players(ws):
-    """
-    Send eliminated players to the Raspberry Pi only once when video stream stops.
-    """
-    global eliminated_players
-
+async def send_eliminated_players(ws, eliminated_players):
+    # There is already a check making sure newly eliminated players have not been eliminated before
     if eliminated_players:
-        data = {"type": "eliminated_players", "payload": eliminated_players}
-        await ws.send(json.dumps(data))
+        await ws.send(json.dumps({"type": "eliminated_players", "data": list(eliminated_players)}))
         logging.info(f"Sent eliminated players: {eliminated_players}")
         eliminated_players.clear()
+
+    # Update the list of all eliminated players
+    all_eliminated_players.update(eliminated_players)
 
 async def detect_motion_and_identify_players(frame1, frame2):
     """
@@ -81,67 +75,69 @@ async def detect_motion_and_identify_players(frame1, frame2):
     return detected_players
 
 async def backend_client(ws):
-    global is_streaming, last_frame_time, players_info, eliminated_players
-
+    global is_streaming, players_info, all_eliminated_players
     previous_frame = None
+    eliminated_players = list()
+
     while True:
         try:
             message = await ws.recv()
-            data = json.loads(message)
+            packet = json.loads(message)
 
-            if data.get("type") == "frame":
-                # Handle frame data
-                # Base64 decode the frame data
-                frame_data = base64.b64decode(data["payload"])
-                frame_array = np.frombuffer(frame_data, dtype=np.uint8)
-                frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                cv2.imshow("Frame", frame)
-                cv2.waitKey(1)
-
-                # Track the time of the last frame
-                current_time = time.time()
-                if current_time - last_frame_time > 10:
-                    if is_streaming:
-                        logging.info(f"Video stream stopped, sending eliminated players...")
-                        await send_eliminated_players(ws)
-                        is_streaming = False
-                    last_frame_time = current_time
-
-                else:
-                    if previous_frame is not None:
-                        detected_players = await detect_motion_and_identify_players(previous_frame, frame)
-                        if detected_players:
-                            logging.info(f"Motion detected for players: {detected_players}")
-                            for player_id in detected_players:
-                                if player_id not in eliminated_players:
-                                    eliminated_players.append(player_id)
-                                    logging.info(f"Player {player_id} eliminated.")
-
-                    is_streaming = True
-                    last_frame_time = current_time
-
-                previous_frame = frame
-
-            elif data.get("type") == "player_info":
+            if packet.get("type") == "players_info":
                 # Handle player image data
-                for player_id, player_image_data in data.get("payload", {}).items():
+                for player_id, player_image_data in packet.get("data", list()).items():
                     # Base64 decode the player image data
                     player_image_data_decoded = base64.b64decode(player_image_data)
                     player_image_array = np.frombuffer(player_image_data_decoded, dtype=np.uint8)
-                    player_image = cv2.imdecode(player_image_array, cv2.IMREAD_GRAYSCALE)
+                    player_image = cv2.imdecode(player_image_array, cv2.IMREAD_COLOR)
                     players_info[player_id] = player_image
                     logging.info(f"Loaded image for player {player_id}")
+                    cv2.imshow(f"Player {player_id}", player_image)
+                    cv2.waitKey(5000) # Display the image for 3 seconds
+
+            elif packet.get("type") == "start_video_stream":
+                logging.info("Received start video stream command")
+                eliminated_players.clear() # Just in case
+                previous_frame = None # Just in case
+                is_streaming = True
+
+            elif packet.get("type") == "stop_video_stream":
+                logging.info("Received stop video stream command")
+                if is_streaming:
+                    logging.info(f"Video stream stopped, sending eliminated players...")
+                    await send_eliminated_players(ws, eliminated_players)
+                    eliminated_players.clear()
+                    previous_frame = None
+                    is_streaming = False
+
+            elif packet.get("type") == "video_frame":
+                if is_streaming:
+                    # Handle frame data
+                    frame_data = base64.b64decode(packet.get("data"))
+                    frame_array = np.frombuffer(frame_data, dtype=np.uint8)
+                    frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
+                    cv2.imshow("RPI video stream", frame)
+                    cv2.waitKey(1)
+
+                    if previous_frame is not None:
+                        detected_players = await detect_motion_and_identify_players(previous_frame, frame)
+                        for player_id in detected_players:
+                            if player_id not in all_eliminated_players:
+                                eliminated_players.add(player_id)
+                                logging.info(f"Player {player_id} eliminated")
+
+                    previous_frame = frame
 
         except websockets.exceptions.ConnectionClosedError as e:
             logging.info(f"WebSocket connection closed: {e}")
             break
         except websockets.exceptions.ConnectionClosedOK:
-            logging.info("WebSocket connection closed normally.")
+            logging.info("WebSocket connection closed normally")
             break
         except Exception as e:
             logging.info(f"Unexpected error: {e}")
             break
-
 
 async def main():
     async with websockets.connect(RPI_SERVER_URL) as ws:

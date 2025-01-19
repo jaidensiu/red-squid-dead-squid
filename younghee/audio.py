@@ -15,7 +15,17 @@ class Audio:
             logging.error(f"Error initializing audio player: {e}")
 
     def play_audio(self, file_path):
-        sound = pygame.mixer.music.load(file_path)
-        sound.play()
-        pygame.time.wait(int(sound.get_length() * 1000))  # Wait for the sound to finish
+        try:
+            sound = pygame.mixer.Sound(file_path)
+            sound.play()
+            pygame.time.wait(int(sound.get_length() * 1000))  # Wait for the sound to finish
+        except Exception as e:
+            logging.error(f"Error playing audio: {e}")
+
+    def play_audio_without_wait(self, file_path):
+        try:
+            sound = pygame.mixer.Sound(file_path)
+            sound.play()
+        except Exception as e:
+            logging.error(f"Error playing audio: {e}")
 

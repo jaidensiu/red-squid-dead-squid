@@ -5,6 +5,7 @@ import json
 import time
 import os
 import logging
+import random
 from audio import Audio
 from servo import Servo
 from camera import Camera
@@ -16,16 +17,23 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%H:%M:%S')
 
-# Set up global variables
+# Global constants
 RPI_IP = os.environ['RPI_IP']
 BACKEND_PORT = os.environ['BACKEND_PORT']
 MOBILE_APP_PORT = os.environ['MOBILE_APP_PORT']
+MAX_GAME_TIME = 180  # 3 minutes
+COUNTDOWN_TIME = 5  # 5 seconds
+MAX_PLAYERS = 4
+
+# Global variables
 game_in_progress = False
+num_players = 0
 mobile_app_socket = None
 backend_socket = None
 eliminated_players_event = asyncio.Event()  # Event to signal when eliminated players are received
-eliminated_players = []  # List to track eliminated players
+all_eliminated_players = set()  # List to track eliminated players
 
+# Initialize the audio player, servo controller, and camera
 audio = Audio()  # Initialize the audio player
 servo = Servo()  # Initialize the servo controller
 camera = Camera()  # Initialize the camera
@@ -33,102 +41,111 @@ camera = Camera()  # Initialize the camera
 async def mobile_app_handler(websocket):
     logging.info(f"Mobile app connected: {websocket.remote_address}")
 
-    global mobile_app_socket
-    global game_in_progress
+    global mobile_app_socket, backend_socket, game_in_progress, num_players
     mobile_app_socket = websocket
 
     async for message in websocket:
-        data = json.loads(message)
-        if data.get("type") == "game_status":
-            game_in_progress = data.get("payload", False)
-        elif data.get("type") == "player_info":
+        packet = json.loads(message)
+        if packet.get("type") == "players_info":
             if not game_in_progress:
-                logging.info("Game not in progress. Player info not processed.")
-            else:
-                # Forward to the backend
-                if backend_socket:
-                    await backend_socket.send(json.dumps({"type": "player_info", "payload": data.get("payload")}))
+                game_in_progress = True  # Set the game to in-progress when player info is received
+                num_players = len(packet.get("data", list()))
+                logging.info(f"Received players info, total players: {num_players}")
+                logging.info(f"Setting game in progress to: {game_in_progress}")
 
-        await websocket.send(json.dumps({"status": "success"}))
+                # Echo the players info to the backend client
+                if backend_socket:
+                    await backend_socket.send(message)
+                    logging.info(f"Echoed players info to backend")
+            else:
+                logging.warning("Game is already in progress, ignoring players info")
 
 async def backend_handler(websocket):
     logging.info(f"Backend connected: {websocket.remote_address}")
 
-    global backend_socket
-    global eliminated_players
+    global backend_socket, mobile_app_socket, all_eliminated_players
     backend_socket = websocket
 
     async for message in websocket:
-        data = json.loads(message)
-        if data.get("type") == "eliminated_players":
-            # Access the payload (list of eliminated players)
-            eliminated_players = data.get("payload", [])
+        packet = json.loads(message)
+        if packet.get("type") == "eliminated_players":
+            eliminated_players = packet.get("data", list())
+            all_eliminated_players.update(eliminated_players)
             logging.info(f"Received eliminated players: {eliminated_players}")
+            logging.info(f"Total eliminated players: {all_eliminated_players}")
 
-            # Send the eliminated players data to the mobile app
+            # Echo eliminated players data to the mobile app
             if mobile_app_socket:
-                await mobile_app_socket.send(json.dumps({"type": "eliminated_players", "payload": eliminated_players}))
+                await mobile_app_socket.send(message)
+                logging.info("Echoed eliminated players to mobile app")
+
+            # Play the elimination audio
+            logging.info("Playing elimination audio...")
+            audio.play_audio("elimination.wav")
+            for player_id in eliminated_players:
+                audio.play_audio(f"player_{player_id}.wav")
 
             # Set the event to signal the game loop to proceed
             eliminated_players_event.set()
-
-            # Play audio or trigger other actions here (e.g., playing doll audio)
-            logging.info("Playing doll audio...")
-            # play_audio("doll_audio.mp3")
-
+            logging.info("Set eliminated players event")
 
 async def main_game_loop():
-    global backend_socket
-    global game_in_progress
-    global eliminated_players_event
-    global eliminated_players
-
-    max_game_time = 60  # Example game time limit in seconds
-    start_time = time.time()  # Start time of the game
+    global backend_socket, mobile_app_socket, game_in_progress, num_players, eliminated_players_event, all_eliminated_players
 
     try:
         while True:
-            if game_in_progress:
-                # 1. Do countdown (could be added here, for example, use time for countdown)
-                logging.info("Starting countdown...")
-                await asyncio.sleep(3)
+            if game_in_progress and backend_socket and mobile_app_socket:
+                # 1. Start game
+                logging.info("Game is now starting...")
+                start_time = time.time()
+                end_time = start_time + MAX_GAME_TIME + COUNTDOWN_TIME
+                await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
+                await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
 
-                # 2. Start game (game starts after countdown)
-                logging.info("Game started!")
+                while True:
+                    # 2. Green light and random wait time
+                    servo.turn_backwards()
+                    await asyncio.sleep(1) # For dramatic effect
+                    audio.play_audio("green_light.wav")
+                    wait_time = random.uniform(1, 5)
+                    logging.info(f"Waiting for {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
 
-                # 3. Play doll audio (trigger audio playback here)
-                logging.info("Playing doll audio...")
-                audio.play_audio("singing.wav")
+                    # 3. Red light, turn head around
+                    audio.play_audio_without_wait("red_light.wav")
+                    servo.turn_forwards()
 
-                # 4. Turn head around (servo control or other actions)
-                logging.info("Turning head around...")
-                servo.turn_backwards()
+                    # 4. Start capturing video for 10 seconds at 30 FPS
+                    logging.info("Capturing video...")
+                    await backend_socket.send(json.dumps({"type": "start_video_stream", "data": bool(True)}))
 
-                # 5. Start capturing video for 10 seconds at 30 FPS
-                logging.info("Capturing video...")
-                time_end = time.time() + 10  # Capture for 10 seconds
-                while time.time() < time_end:
-                    encoded_buffer = camera.capture_and_encode_image()
-                    if encoded_buffer is not None:
-                        # Sending the base64-encoded frame as part of the JSON payload
-                        if backend_socket:
-                            await backend_socket.send(json.dumps({"type": "frame", "payload": encoded_buffer}))
+                    time_end = time.time() + 5  # Capture for 5 seconds
+                    while time.time() < time_end:
+                        encoded_buffer = camera.capture_and_encode_image()
+                        if encoded_buffer is not None:
+                            await backend_socket.send(json.dumps({"type": "video_frame", "data": str(encoded_buffer)}))
 
-                    await asyncio.sleep(0.033)  # 30 FPS
+                    await backend_socket.send(json.dumps({"type": "stop_video_stream", "data": bool(True)}))
 
-                # 6. Wait until the eliminated players are sent back to us before proceeding
-                logging.info("Waiting for eliminated players...")
-                await eliminated_players_event.wait()
-                eliminated_players_event.clear()
+                    # 5. Wait until the eliminated players are sent back to us before proceeding
+                    logging.info("Waiting for eliminated players...")
+                    await eliminated_players_event.wait()
+                    logging.info("Eliminated players received")
+                    eliminated_players_event.clear()
 
-                # 8. Check for game end conditions (either no players left or max game time reached)
-                if len(eliminated_players) >= 10 or (time.time() - start_time) > max_game_time:
-                    logging.info("Game Over!")
-                    break  # Exit the loop if game is over (either no players left or timer ran out)
+                    # 6. Check for game end conditions (either no players left or max game time reached)
+                    if len(all_eliminated_players) >= num_players or (time.time() - start_time) > MAX_GAME_TIME:
+                        logging.info("Game has ended due to no players left or max game time reached")
+                        logging.info("Sending game over signal to mobile app")
+                        await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
+
+                        logging.info("Playing game end audio...")
+                        audio.play_audio("game_end.wav")
+                        game_in_progress = False
+                        break
 
             else:
                 await asyncio.sleep(1)  # Idle when the game is not active
-
     finally:
         camera.close()
 
