@@ -102,7 +102,7 @@ async def main_game_loop():
                 start_time = time.time()
                 end_time = start_time + MAX_GAME_TIME + COUNTDOWN_TIME
                 if mobile_app_socket:
-                    logging.info("Sending game end time to mobile app")
+                    logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
                 await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
 
