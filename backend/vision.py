@@ -94,7 +94,7 @@ if __name__ == "__main__":
     motion_detector = MotionDetector()
 
     # Process frames from video capture
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
     camera.set(cv2.CAP_PROP_FPS, 30)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
             # Create separate frames for motion contours and body detections
             motion_frame = frame.copy()
-            body_frame = frame.copy()
+            # body_frame = frame.copy()
 
             # draw motion contours in motion frame as the contour, using draw contours
             for contour in contours:
@@ -116,10 +116,10 @@ if __name__ == "__main__":
 
             # Highlight detected bodies on body_frame
             for (x, y, w, h) in bodies:
-                cv2.rectangle(body_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
             # Combine the two frames side by side
-            combined_frame = np.hstack((motion_frame, body_frame))
+            combined_frame = np.hstack((motion_frame, frame))
 
 
             # Display the combined frame
