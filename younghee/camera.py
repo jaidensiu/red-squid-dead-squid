@@ -17,7 +17,6 @@ class Camera:
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
             self.camera.set(cv2.CAP_PROP_FPS, 30)
-            self.camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             logging.info("Camera initialized")
         except Exception as e:
             logging.error(f"Error initializing camera: {e}")

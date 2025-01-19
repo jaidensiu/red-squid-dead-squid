@@ -28,10 +28,9 @@ is_streaming = False # Flag to track if video frames are currently being process
 
 async def send_eliminated_players(ws, eliminated_players):
     # There is already a check making sure newly eliminated players have not been eliminated before
-    if eliminated_players:
+    if eliminated_players is not None:
         await ws.send(json.dumps({"type": "eliminated_players", "data": list(eliminated_players)}))
         logging.info(f"Sent eliminated players: {eliminated_players}")
-        eliminated_players.clear()
 
     # Update the list of all eliminated players
     all_eliminated_players.update(eliminated_players)

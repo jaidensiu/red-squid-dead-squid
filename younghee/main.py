@@ -85,7 +85,7 @@ async def backend_handler(websocket):
 
             # Echo eliminated players data to the mobile app
             if mobile_app_socket:
-                await mobile_app_socket.send(message)
+                await mobile_app_socket.send(json.dumps({"type": "eliminated_players", "data": "".join(eliminated_players)}))
                 logging.info("Echoed eliminated players to mobile app")
 
             # Play the elimination audio
@@ -110,7 +110,7 @@ async def main_game_loop():
                 end_time = int(start_time + MAX_GAME_TIME + COUNTDOWN_TIME)
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
-                    await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": int(end_time)}))
+                    await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": str(end_time)}))
                 await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
 
                 logging.info("Playing game start audio...")
@@ -161,7 +161,7 @@ async def main_game_loop():
 
                         if mobile_app_socket:
                             logging.info("Sending game over signal to mobile app")
-                            await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
+                            await mobile_app_socket.send(json.dumps({"type": "game_over", "data": str("True")}))
 
                         logging.info("Playing game end audio...")
                         audio.play_audio("audio/game_end.wav")
