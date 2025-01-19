@@ -25,7 +25,7 @@ class Servo:
     def turn_forwards(self):
         try:
             logging.info("Turning servo forwards")
-            self.pwm.set_servo_pulsewidth(self.servo, 2400)
+            self.pwm.set_servo_pulsewidth(self.servo, 600)
             time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
@@ -43,7 +43,7 @@ class Servo:
     def turn_backwards(self):
         try:
             logging.info("Turning servo backwards")
-            self.pwm.set_servo_pulsewidth(self.servo, 500)
+            self.pwm.set_servo_pulsewidth(self.servo, 2400)
             time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:

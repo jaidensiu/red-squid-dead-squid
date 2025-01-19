@@ -14,8 +14,8 @@ class Camera:
             if not self.camera.isOpened():
                 logging.error("Failed to open camera.")
 
-            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
             self.camera.set(cv2.CAP_PROP_FPS, 30)
             logging.info("Camera initialized")
         except Exception as e:

@@ -89,8 +89,6 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                    # cv2.imshow("RPI video stream", frame)
-                    # cv2.waitKey(1)
 
                     motion_contours = motion_detector.process_frame(frame)
                     for contour in motion_contours:
@@ -98,8 +96,6 @@ async def backend_client(ws):
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
                     # Show the frame with motion contours, show a smaller cv2 window
-                    cv2.namedWindow("Motion Detection", cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow("Motion Detection", 640, 360)
                     cv2.imshow("Motion Detection", frame)
                     cv2.waitKey(1)
 

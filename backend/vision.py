@@ -50,8 +50,8 @@ if __name__ == "__main__":
 
     # Process frames from video capture
     camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
     camera.set(cv2.CAP_PROP_FPS, 30)
 
     while True:
