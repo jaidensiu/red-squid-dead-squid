@@ -134,7 +134,8 @@ async def backend_client(ws):
                         detected_players = {1, 2, 3}  # Dummy data
                         for player_id in detected_players:
                             if player_id not in all_eliminated_players:
-                                eliminated_players.add(player_id)
+                                eliminated_players.append(player_id)
+                                all_eliminated_players.add(player_id)
                                 logging.info(f"Player {player_id} eliminated")
 
                     previous_frame = frame

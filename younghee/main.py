@@ -153,6 +153,9 @@ async def main_game_loop():
                     # 6. Check for game end conditions (either no players left or max game time reached)
                     if len(all_eliminated_players) >= num_players or (time.time() - start_time) > MAX_GAME_TIME:
                         logging.info("Game has ended due to no players left or max game time reached")
+                        logging.info(f"Total eliminated players: {all_eliminated_players}")
+                        logging.info(f"Total game time: {time.time() - start_time} seconds")
+
                         if mobile_app_socket:
                             logging.info("Sending game over signal to mobile app")
                             await mobile_app_socket.send(json.dumps({"type": "game_over", "data": bool(True)}))
