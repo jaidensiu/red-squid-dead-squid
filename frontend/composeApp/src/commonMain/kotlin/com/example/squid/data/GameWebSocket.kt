@@ -1,9 +1,10 @@
+@file:OptIn(ExperimentalEncodingApi::class)
+
 package com.example.squid.data
 
+import com.example.squid.ui.game.GameViewModel
 import com.example.squid.ui.players.Player
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.url
 import io.ktor.websocket.Frame
@@ -11,11 +12,13 @@ import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
-class GameWebSocket {
-    private val client = HttpClient(CIO) {
-        install(WebSockets)
-    }
+class GameWebSocket(
+    private val viewModel: GameViewModel,
+    private val client: HttpClient
+) {
     private var session: WebSocketSession? = null
 
     suspend fun connect() {
@@ -33,51 +36,57 @@ class GameWebSocket {
                 when (frame) {
                     is Frame.Text -> {
                         val message = frame.readText()
+                        println("GameWebSocket.listenForMessages(): $message")
                         handleMessage(message)
                     }
 
-                    is Frame.Binary -> TODO()
-                    is Frame.Close -> TODO()
-                    is Frame.Ping -> TODO()
-                    is Frame.Pong -> TODO()
-                    else -> TODO()
+                    is Frame.Binary -> println("Binary: $frame")
+
+                    is Frame.Close -> print("Close: $frame")
+
+                    is Frame.Ping -> print("Ping: $frame")
+
+                    is Frame.Pong -> print("Pong: $frame")
+
+                    else -> print("Else: $frame")
                 }
             }
         }
     }
 
     private fun handleMessage(message: String) {
-        val json = Json { ignoreUnknownKeys = true }
-        val parsedMessage = json.decodeFromString<Map<String, Any>>(message)
-        when (parsedMessage["type"]) {
-            "game_end_time" -> handleGameEndTime(parsedMessage["data"] as Long)
-            "eliminated_players" -> handleEliminatedPlayers(parsedMessage["data"] as List<Int>)
-            "game_over" -> handleGameOver()
+        val json = Json {
+            ignoreUnknownKeys = true
+        }
+        println("GameWebSocket.handleMessage(): $message")
+        val parsedMessage = json.decodeFromString<ReceiverMessage>(message)
+        when (parsedMessage.type) {
+            "game_end_time" -> {
+                println("GameWebSocket.handleMessage(GameEndTimeMessage): $message")
+                viewModel.handleGameEndTime(parsedMessage.data)
+            }
+
+            "eliminated_players" -> {
+                viewModel.handleEliminatedPlayers(parsedMessage.data)
+            }
+
+            "game_over" -> {
+                viewModel.handleGameOver(parsedMessage.data)
+            }
         }
     }
 
-    private fun handleGameEndTime(data: Long) {
-        // Handle game end time
-    }
-
-    private fun handleEliminatedPlayers(data: List<Int>) {
-        // Handle eliminated players
-    }
-
-    private fun handleGameOver() {
-        // Handle game over
-    }
-
     suspend fun sendPlayers(players: List<Player>) {
-        val message = mapOf(
-            "type" to "players_info",
-            "data" to players.forEach { it.image }
+        val message = PlayerInfoSenderMessage(
+            type = "players_info",
+            data = players.map { Base64.encode(it.image) }
         )
         val jsonMessage = Json.encodeToString(message)
-        session?.send(Frame.Text(jsonMessage))
+        session?.outgoing?.send(Frame.Text(jsonMessage))
     }
 
     companion object {
-        private const val URL = "ws://10.19.130.170:8765"
+        private const val TEST_URL = "ws://10.19.130.170:8765"
+        private const val URL = "ws://10.19.133.46:8765"
     }
 }

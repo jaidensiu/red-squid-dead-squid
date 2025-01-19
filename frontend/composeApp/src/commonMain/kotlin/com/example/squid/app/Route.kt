@@ -16,5 +16,5 @@ sealed interface Route {
     data object Countdown : Route
 
     @Serializable
-    data object Playing : Route
+    data object Game : Route
 }

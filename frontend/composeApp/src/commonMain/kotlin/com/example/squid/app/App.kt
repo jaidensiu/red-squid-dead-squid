@@ -1,20 +1,38 @@
 package com.example.squid.app
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.squid.data.GameWebSocket
+import com.example.squid.data.HttpClientFactory
 import com.example.squid.ui.countdown.CountdownScreen
-import com.example.squid.ui.players.PlayersScreen
-import com.example.squid.ui.theme.SquidTheme
+import com.example.squid.ui.game.GameScreen
+import com.example.squid.ui.game.GameViewModel
 import com.example.squid.ui.landing.LandingScreen
+import com.example.squid.ui.players.PlayersScreen
 import com.example.squid.ui.players.PlayersViewModel
+import com.example.squid.ui.theme.SquidTheme
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
     val navController = rememberNavController()
+    val gameViewModelViewModel = GameViewModel()
+    val httpClient = HttpClientFactory.create()
+    val webSocket = GameWebSocket(
+        viewModel = gameViewModelViewModel,
+        client = httpClient
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        webSocket.connect()
+    }
 
     SquidTheme {
         NavHost(
@@ -33,16 +51,23 @@ fun App() {
 
                     PlayersScreen(
                         viewModel = viewModel,
-                        onStartGame = { navController.navigate(route = Route.Countdown) }
+                        onStartGame = {
+                            coroutineScope.launch {
+                                webSocket.sendPlayers(viewModel.state.value.players)
+                            }
+                            navController.navigate(route = Route.Countdown)
+                        }
                     )
                 }
 
                 composable<Route.Countdown> {
-                    CountdownScreen(onFinish = { navController.navigate(route = Route.Playing) })
+                    CountdownScreen(onFinish = { navController.navigate(route = Route.Game) })
                 }
 
-                composable<Route.Playing> {
-
+                composable<Route.Game> {
+                    GameScreen(
+                        viewModel = gameViewModelViewModel
+                    )
                 }
             }
         }
