@@ -20,9 +20,11 @@ EVIN_IP = os.environ['EVIN_IP']
 CURRENT_IP = EVIN_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
 CURRENT_SERVER_URL = f"ws://{CURRENT_IP}:{BACKEND_PORT}"
+MAX_NUM_PLAYERS = 4
 
 game_in_progress = False
 players_info = [None] * 5
+num_players = 0
 all_eliminated_players = set() # A list to track eliminated players
 is_streaming = False # Flag to track if video frames are currently being processed
 
@@ -80,7 +82,7 @@ async def detect_motion(frame1, frame2):
     return []
 
 async def backend_client(ws):
-    global is_streaming, players_info, all_eliminated_players
+    global is_streaming, players_info, num_players, all_eliminated_players
     previous_frame = None
     eliminated_players = list()
 
@@ -90,7 +92,9 @@ async def backend_client(ws):
             packet = json.loads(message)
 
             if packet.get("type") == "players_info":
-                # Handle player image data
+                logging.info("Received players info")
+                num_players = len(packet.get("data", list()))
+
                 for player_id, player_image_data in enumerate(packet.get("data", list())):
                     # Base64 decode the player image data
                     player_id += 1  # Player IDs are 1-indexed
@@ -117,6 +121,7 @@ async def backend_client(ws):
                     eliminated_players.clear()
                     previous_frame = None
                     is_streaming = False
+                    cv2.destroyAllWindows()  # Ensures all OpenCV windows are closed at this point
 
             elif packet.get("type") == "video_frame":
                 if is_streaming:
@@ -130,9 +135,9 @@ async def backend_client(ws):
                     if previous_frame is not None:
                         # motion_contours = await detect_motion(previous_frame, frame)
                         # detected_players = await identify_players(motion_contours, frame)
-                        detected_players = {1, 2, 3}  # Dummy data
+                        detected_players = [1, 2, 3]  # Dummy data
                         for player_id in detected_players:
-                            if player_id not in all_eliminated_players:
+                            if player_id not in all_eliminated_players and player_id <= num_players:
                                 eliminated_players.append(player_id)
                                 all_eliminated_players.add(player_id)
                                 logging.info(f"Player {player_id} eliminated")
