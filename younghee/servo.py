@@ -16,7 +16,7 @@ class Servo:
             self.servo = 18
 
             self.pwm.set_mode(self.servo, pigpio.OUTPUT)
-            self.pwm.set_PWM_frequency(self.servo, 50)
+            self.pwm.set_PWM_frequency(self.servo, 100)
             self.turn_forwards()
             logging.info("Servo initialized")
         except Exception as e:
@@ -25,7 +25,7 @@ class Servo:
     def turn_forwards(self):
         try:
             logging.info("Turning servo forwards")
-            self.pwm.set_servo_pulsewidth(self.servo, 2500)
+            self.pwm.set_servo_pulsewidth(self.servo, 2400)
             time.sleep(3)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
@@ -44,18 +44,21 @@ class Servo:
         try:
             logging.info("Turning servo backwards")
             self.pwm.set_servo_pulsewidth(self.servo, 500)
-            time.sleep(3)
+            time.sleep(1)
             self.pwm.set_servo_pulsewidth(self.servo, 0)
         except Exception as e:
             logging.error(f"Error turning servo backwards: {e}")
 
+    def stop(self):
+        try:
+            logging.info("Stopping servo")
+            self.pwm.set_servo_pulsewidth(self.servo, 0)
+            self.pwm.stop()
+        except Exception as e:
+            logging.error(f"Error stopping servo: {e}")
+
 if __name__ == "__main__":
     servo = Servo()
-
-    while True:
-        try:
-            servo.turn_forwards()
-            servo.turn_backwards()
-        finally:
-            servo.pwm.set_servo_pulsewidth(servo.servo, 0)
-            servo.pwm.stop()
+    servo.turn_halfway()
+    servo.turn_backwards()
+    servo.stop()
