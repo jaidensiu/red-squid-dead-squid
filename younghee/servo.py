@@ -53,6 +53,4 @@ if __name__ == "__main__":
     servo = Servo()
     servo.turn_forwards()
     time.sleep(1)
-    servo.turn_halfway()
-    time.sleep(1)
     servo.turn_backwards()
