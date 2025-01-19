@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO,
 # Global constants
 RPI_IP = os.environ['RPI_IP']
 EVIN_IP = os.environ['EVIN_IP']
-CURRENT_IP = EVIN_IP
+CURRENT_IP = RPI_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
 CURRENT_SERVER_URL = f"ws://{CURRENT_IP}:{BACKEND_PORT}"
 MAX_NUM_PLAYERS = 4
