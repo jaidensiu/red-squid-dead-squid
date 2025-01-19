@@ -1,7 +1,10 @@
 package com.example.squid.ui.players
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Player(
-    val image: ByteArray? = null
+    val image: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -9,15 +12,10 @@ data class Player(
 
         other as Player
 
-        if (image != null) {
-            if (other.image == null) return false
-            if (!image.contentEquals(other.image)) return false
-        } else if (other.image != null) return false
-
-        return true
+        return image.contentEquals(other.image)
     }
 
     override fun hashCode(): Int {
-        return image?.contentHashCode() ?: 0
+        return image.contentHashCode()
     }
 }

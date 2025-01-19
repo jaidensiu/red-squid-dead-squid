@@ -1,20 +1,13 @@
 package com.example.squid.ui.players
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.squid.data.GameWebSocket
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
-class PlayersViewModel(private val webSocket: GameWebSocket) : ViewModel() {
+class PlayersViewModel : ViewModel() {
     private val _state = MutableStateFlow(PlayersScreenState())
     val state = _state.asStateFlow()
-
-    init {
-        viewModelScope.launch { webSocket.connect() }
-    }
 
     fun onAddPlayer(image: ByteArray) {
         val newPlayer = Player(image = image)
