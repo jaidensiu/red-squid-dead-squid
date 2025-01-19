@@ -134,7 +134,7 @@ fun PlayersScreen(
         ) {
             TextButton(
                 onClick = onStartGame,
-                enabled = state.value.players.size > 1
+                enabled = state.value.players.isNotEmpty()
             ) {
                 Text(
                     text = "START GAME ->",
