@@ -33,7 +33,7 @@ fun App() {
 
                     PlayersScreen(
                         viewModel = viewModel,
-                        onNext = { navController.navigate(route = Route.Countdown) }
+                        onStartGame = { navController.navigate(route = Route.Countdown) }
                     )
                 }
 
