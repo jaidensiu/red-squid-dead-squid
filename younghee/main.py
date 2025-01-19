@@ -53,9 +53,10 @@ async def mobile_app_handler(websocket):
             if not game_in_progress:
                 game_in_progress = True  # Set the game to in-progress when player info is received
                 num_players = len(packet.get("data", list()))
-                # Display the player images
-                for player_id, player_image in packet.get("data", dict()).items():
-                    with open(f"player_{player_id}.jpg", "wb") as f:
+                # Display the player images as a list
+                for player_id, player_image in enumerate(packet.get("data", list())):
+                    player_id += 1 # Player IDs are 1-indexed
+                    with open(f"player_images/{player_id}.jpg", "wb") as f:
                         f.write(base64.b64decode(player_image))
 
                 logging.info(f"Received players info, total players: {num_players}")
