@@ -117,8 +117,8 @@ async def backend_client(ws):
                     frame_data = base64.b64decode(packet.get("data"))
                     frame_array = np.frombuffer(frame_data, dtype=np.uint8)
                     frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
-                    cv2.imshow("RPI video stream", frame)
-                    cv2.waitKey(1)
+                    # cv2.imshow("RPI video stream", frame)
+                    # cv2.waitKey(1)
 
                     if previous_frame is not None:
                         detected_players = await detect_motion_and_identify_players(previous_frame, frame)
