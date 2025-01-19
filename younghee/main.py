@@ -24,7 +24,7 @@ EVIN_IP = os.environ['EVIN_IP']
 CURRENT_IP = RPI_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
 MOBILE_APP_PORT = os.environ['MOBILE_APP_PORT']
-MAX_GAME_TIME = 180  # 3 minutes
+MAX_GAME_TIME = 60  # 3 minutes
 COUNTDOWN_TIME = 5  # 5 seconds
 MAX_PLAYERS = 4
 
@@ -117,7 +117,7 @@ async def main_game_loop():
                 if mobile_app_socket:
                     logging.info(f"Sending game end time {end_time} to mobile app")
                     await mobile_app_socket.send(json.dumps({"type": "game_end_time", "data": str(end_time)}))
-                await asyncio.sleep(COUNTDOWN_TIME + 2)  # Wait for the mobile app to receive the game end time
+                await asyncio.sleep(COUNTDOWN_TIME + 1)  # Wait for the mobile app to receive the game end time
 
                 logging.info("Playing game start audio...")
                 audio.play_audio("audio/game_start.wav")
