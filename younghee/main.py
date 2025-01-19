@@ -170,6 +170,7 @@ async def main_game_loop():
                         logging.info("Playing game end audio...")
                         audio.play_audio("audio/game_end.wav")
                         game_in_progress = False
+                        all_eliminated_players.clear()
                         break
 
             else:
