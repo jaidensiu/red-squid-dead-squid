@@ -54,8 +54,6 @@ async def detect_motion(frame1, frame2):
     # Find contours in the thresholded image (indicating movement)
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    detected_players = []
-
     for contour in contours:
         if cv2.contourArea(contour) < 500:  # Ignore small areas of motion
             continue
@@ -64,20 +62,21 @@ async def detect_motion(frame1, frame2):
         x, y, w, h = cv2.boundingRect(contour)
         motion_region = frame2[y:y+h, x:x+w]
 
-        # Try to identify the player based on the motion region
-        matched_player_id = None
-        for player_id, player_image in players_info.items():
-            res = cv2.matchTemplate(motion_region, player_image, cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, _ = cv2.minMaxLoc(res)
+        # # Try to identify the player based on the motion region
+        # matched_player_id = None
+        # for player_id, player_image in players_info.items():
+        #     res = cv2.matchTemplate(motion_region, player_image, cv2.TM_CCOEFF_NORMED)
+        #     _, max_val, _, _ = cv2.minMaxLoc(res)
 
-            if max_val > 0.7:  # Threshold for considering a match
-                matched_player_id = player_id
-                break
+        #     if max_val > 0.7:  # Threshold for considering a match
+        #         matched_player_id = player_id
+        #         break
 
-        if matched_player_id:
-            detected_players.append(matched_player_id)
+        # if matched_player_id:
+        #     detected_players.append(matched_player_id)
 
-    return detected_players
+    # return detected_players
+    return []
 
 async def backend_client(ws):
     global is_streaming, players_info, all_eliminated_players
