@@ -174,7 +174,12 @@ async def main_game_loop():
                         break
 
             else:
-                await asyncio.sleep(1)  # Idle when the game is not active
+                # Send camera feed to the backend when the game is not in progress
+                if backend_socket:
+                    encoded_buffer = camera.capture_and_encode_image()
+                    if encoded_buffer is not None:
+                        await backend_socket.send(json.dumps({"type": "video_frame", "data": str(encoded_buffer)}))
+
     except Exception as e:
         logging.error(f"Error in main game loop: {e}")
     finally:
