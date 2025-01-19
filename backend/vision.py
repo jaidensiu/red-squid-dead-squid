@@ -44,7 +44,7 @@ class MotionDetector:
         # Filter out small contours
         motion_contours = [contour for contour in contours if cv2.contourArea(contour) > self.min_area]
         return motion_contours
-    
+
     def detect_bodies(self, frame):
         # Use HOG descriptor or a pre-trained model to detect bodies
         hog = cv2.HOGDescriptor()
@@ -54,7 +54,7 @@ class MotionDetector:
         bodies, _ = hog.detectMultiScale(frame, winStride=(8, 8))
 
         return bodies
-    
+
     def identify_players(self, motion_contours, frame):
         bodies = self.detect_bodies(frame)
         player_motions = []
@@ -88,7 +88,7 @@ class MotionDetector:
                 })
 
         return player_motions
-    
+
 
 if __name__ == "__main__":
     motion_detector = MotionDetector()

@@ -46,6 +46,7 @@ async def send_eliminated_players(ws, eliminated_players):
 async def backend_client(ws):
     global is_streaming, players_info, num_players, all_eliminated_players
     eliminated_players = list()
+    frame_count = 0
 
     while True:
         try:
@@ -102,15 +103,19 @@ async def backend_client(ws):
 
                     for contour in motion_contours:
                         cv2.drawContours(motion_frame, [contour], -1, (0, 255, 0), 2)
-                    
+
                     for body in body_detections:
                         (x, y, w, h) = body
                         cv2.rectangle(body_frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                        
+
                     combined_frame = np.hstack((motion_frame, body_frame))
 
                     # Show the frame with motion contours, show a smaller cv2 window
                     cv2.imshow("Motion and Body", combined_frame)
+                    # # Save the frame to a file
+                    # if frame_count % 30 == 0:
+                    #     cv2.imwrite(f"frames/frame_{frame_count}.jpg", combined_frame)
+                    # frame_count += 1
                     cv2.waitKey(1)
 
                     # detected_players = await identify_players(motion_contours, frame)
@@ -131,6 +136,8 @@ async def backend_client(ws):
         except Exception as e:
             logging.info(f"Unexpected error: {e}")
             break
+        finally:
+            cv2.destroyAllWindows()
 
 async def main():
     async with websockets.connect(CURRENT_SERVER_URL) as ws:
