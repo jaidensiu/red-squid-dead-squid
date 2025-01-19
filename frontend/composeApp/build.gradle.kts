@@ -62,6 +62,8 @@ kotlin {
             implementation(libs.bundles.coil)
             implementation(libs.konnectivity)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.ktor.client.websockets)
+            implementation(libs.ktor.client.cio)
         }
 
         nativeMain.dependencies {

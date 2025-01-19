@@ -40,7 +40,7 @@ import redsquiddeadsquid.composeapp.generated.resources.plus
 @Composable
 fun PlayersScreen(
     viewModel: PlayersViewModel = koinViewModel(),
-    onNext: () -> Unit
+    onStartGame: () -> Unit
 ) {
     val state = viewModel.state.collectAsState()
     val launchCamera = rememberCameraLauncher { viewModel.onAddPlayer(it) }
@@ -77,6 +77,8 @@ fun PlayersScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
+                    // TODO: Amanda maybe try out diamond overlay
+                    //  just wrap everything within the parent's scope around another Box with the overlay
                     when {
                         idx < state.value.players.size && idx >= 0 -> {
                             Image(
@@ -131,11 +133,11 @@ fun PlayersScreen(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(
-                onClick = onNext,
+                onClick = onStartGame,
                 enabled = state.value.players.size > 1
             ) {
                 Text(
-                    text = "NEXT ->",
+                    text = "START GAME ->",
                     color = Color.White.copy(alpha = if (state.value.players.size > 1) 1f else 0.5f)
                 )
             }
