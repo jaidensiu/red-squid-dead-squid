@@ -35,7 +35,6 @@ class MotionDetector:
             region = self.player_regions[i]
             if cX >= region[0] and cX <= region[1]:
                 return i+1
- 
 
     def process_frame(self, frame):
         # Convert and blur the frame
@@ -45,7 +44,6 @@ class MotionDetector:
         # Initialize first frame for comparison
         if self.first_frame is None:
             self.first_frame = gray
-            self.get_player_regions(frame)
             return []
 
         self.delay_counter += 1
@@ -79,7 +77,7 @@ class MotionDetector:
         bodies, _ = hog.detectMultiScale(frame, winStride=(8, 8))
 
         return bodies
-    
+
     def get_regions_of_movement(self, frame, motion_contours):
         regions = []
         for contour in motion_contours:
@@ -88,7 +86,7 @@ class MotionDetector:
             if M["m00"] == 0:
                 continue
             cX = int(M["m10"] / M["m00"])
-            
+
             # check which region the contour is in
             for i in range (len(self.player_regions)):
                 region = self.player_regions[i]
@@ -137,7 +135,7 @@ class MotionDetector:
     def match_faces(self, frame, bodies, known_faces):
         matched_results = []
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-        
+
         for (x, y, w, h) in bodies:
             # Crop upper region of the body where the face is expected
             body_roi = frame[y:y + h, x:x + w]
@@ -147,28 +145,28 @@ class MotionDetector:
             faces = face_cascade.detectMultiScale(face_roi, scaleFactor=1.1, minNeighbors=5)
             for (fx, fy, fw, fh) in faces:
                 face_region = face_roi[fy:fy + fh, fx:fx + fw]
-                
+
                 # Encode the detected face
                 face_encodings = face_recognition.face_encodings(face_region)
                 if face_encodings:
                     face_encoding = face_encodings[0]
-                    
+
                     # Match with known faces
                     matches = face_recognition.compare_faces(known_faces, face_encoding)
                     distances = face_recognition.face_distance(known_faces, face_encoding)
-                    
+
                     # Identify the best match
                     if matches:
                         best_match_index = distances.argmin()
                         matched_name = list(known_faces.keys())[best_match_index]
                         matched_results.append({"body": (x, y, w, h), "matched_name": matched_name})
-                        
+
                         # Annotate the frame
                         cv2.putText(frame, matched_name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        
+
         return matched_results
-    
+
     def match_template(self, input_frame, template_image):
         # Convert both images to grayscale
         input_gray = cv2.cvtColor(input_frame, cv2.COLOR_BGR2GRAY)
@@ -207,7 +205,7 @@ if __name__ == "__main__":
     # Display the frame
     cv2.imshow(f"Random Frame (Index: {random_frame_index})", frame)
     cv2.waitKey(0)  # Wait for a key press to close the window
-    
+
     # detect bodies in the frame
     body_frame = frame.copy()
     bodies = motion_detector.detect_bodies(frame)
@@ -230,7 +228,7 @@ if __name__ == "__main__":
     matched_results = motion_detector.match_faces(frame, bodies, player_images)
     for result in matched_results:
         print(result)
-    
+
 
     # player_images = [cv2.imread("adarsh.jpg"), cv2.imread("amanda.jpg")]
     # # crop the frame to the upper third of the body
@@ -239,13 +237,13 @@ if __name__ == "__main__":
     #     face_roi = body_roi[:h // 4, w//4:-w//4]  # Focus on the top third
     #     cv2.imshow("Face ROI", face_roi)
     #     cv2.waitKey(0)
-    
+
     # # template match the face to the known faces
     # for player_image in player_images:
     #     frame, max_val = motion_detector.match_template(frame, player_image)
     #     print(max_val)
-     
-        
+
+
     cv2.destroyAllWindows()
 
     # # Process frames from video capture
