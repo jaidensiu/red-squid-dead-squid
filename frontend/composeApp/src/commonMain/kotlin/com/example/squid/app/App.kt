@@ -5,9 +5,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.squid.ui.register.RegisterScreen
+import com.example.squid.ui.countdown.CountdownScreen
+import com.example.squid.ui.players.PlayersScreen
 import com.example.squid.ui.theme.SquidTheme
-import com.example.squid.ui.welcome.WelcomeScreen
+import com.example.squid.ui.landing.LandingScreen
+import com.example.squid.ui.players.PlayersViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
@@ -18,15 +21,28 @@ fun App() {
             navController = navController,
             startDestination = Route.RouteGraph
         ) {
-            navigation<Route.RouteGraph>(startDestination = Route.Welcome) {
-                composable<Route.Welcome> {
-                    WelcomeScreen(
-                        onRegisterPlayers = { navController.navigate(route = Route.Register) }
+            navigation<Route.RouteGraph>(startDestination = Route.Landing) {
+                composable<Route.Landing> {
+                    LandingScreen(
+                        onRegisterPlayers = { navController.navigate(route = Route.Players) }
                     )
                 }
 
-                composable<Route.Register> {
-                    RegisterScreen()
+                composable<Route.Players> {
+                    val viewModel = koinViewModel<PlayersViewModel>()
+
+                    PlayersScreen(
+                        viewModel = viewModel,
+                        onNext = { navController.navigate(route = Route.Countdown) }
+                    )
+                }
+
+                composable<Route.Countdown> {
+                    CountdownScreen(onFinish = { navController.navigate(route = Route.Playing) })
+                }
+
+                composable<Route.Playing> {
+
                 }
             }
         }
