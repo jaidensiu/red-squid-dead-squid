@@ -66,13 +66,12 @@ async def backend_client(ws):
 
                     player_image_array = np.frombuffer(player_image_data_decoded, dtype=np.uint8)
                     player_image = cv2.imdecode(player_image_array, cv2.IMREAD_COLOR)
-                    players_info[player_id] = face_recognition.face_encodings(player_image)
+                    players_info[player_id] = player_image
                     logging.info(f"Loaded image for player {player_id}")
 
             elif packet.get("type") == "start_video_stream":
                 logging.info("Received start video stream command")
                 eliminated_players.clear() # Just in case
-                previous_frame = None # Just in case
                 is_streaming = True
                 motion_detector.first_frame = None
                 motion_detector.set_regions(num_players)
