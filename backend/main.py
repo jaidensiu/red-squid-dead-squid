@@ -112,10 +112,10 @@ async def backend_client(ws):
 
                     # Show the frame with motion contours, show a smaller cv2 window
                     cv2.imshow("Motion and Body", combined_frame)
-                    # Save the frame to a file
-                    if frame_count % 30 == 0:
-                        cv2.imwrite(f"frames/frame_{frame_count}.jpg", combined_frame)
-                    frame_count += 1
+                    # # Save the frame to a file
+                    # if frame_count % 30 == 0:
+                    #     cv2.imwrite(f"frames/frame_{frame_count}.jpg", combined_frame)
+                    # frame_count += 1
                     cv2.waitKey(1)
 
                     # detected_players = await identify_players(motion_contours, frame)
