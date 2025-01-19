@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO,
 # Global constants
 RPI_IP = os.environ['RPI_IP']
 EVIN_IP = os.environ['EVIN_IP']
-CURRENT_IP = EVIN_IP
+CURRENT_IP = RPI_IP
 BACKEND_PORT = os.environ['BACKEND_PORT']
 MOBILE_APP_PORT = os.environ['MOBILE_APP_PORT']
 MAX_GAME_TIME = 180  # 3 minutes
