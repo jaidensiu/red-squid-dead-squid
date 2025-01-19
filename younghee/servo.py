@@ -51,5 +51,7 @@ class Servo:
 
 if __name__ == "__main__":
     servo = Servo()
-    servo.turn_forwards()
-    servo.turn_backwards()
+
+    while True:
+        servo.turn_forwards()
+        servo.turn_backwards()
